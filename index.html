@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menadżer zadań</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1e40af;
+      --bg: #f6f8fa;
+      --bg-dark: #181a1b;
+      --card: #fff;
+      --card-dark: #23272f;
+      --text: #222;
+      --text-dark: #f7fafc;
+      --border: #e5e7eb;
+      --border-dark: #2d323b;
+      --shadow: 0 2px 12px rgba(30,64,175,0.08);
+      --radius: 18px;
+      --transition: 0.18s cubic-bezier(.4,0,.2,1);
+    }
+    [data-theme="dark"] {
+      --primary: #60a5fa;
+      --primary-dark: #2563eb;
+      --bg: var(--bg-dark);
+      --card: var(--card-dark);
+      --text: var(--text-dark);
+      --border: var(--border-dark);
+    }
+    html, body {
+      margin: 0; padding: 0;
+      font-family: 'Inter', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      transition: background var(--transition), color var(--transition);
+    }
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 64px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0; z-index: 10;
+    }
+    .navbar .logo {
+      font-weight: 700;
+      font-size: 1.3em;
+      letter-spacing: 0.01em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .navbar .logo .material-icons {
+      font-size: 1.4em;
+      color: var(--primary);
+    }
+    .navbar .actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .navbar button, .navbar select {
+      background: none;
+      border: none;
+      color: var(--primary-dark);
+      font-size: 1.1em;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: var(--radius);
+      transition: background var(--transition), color var(--transition);
+    }
+    .navbar button:hover, .navbar select:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+    .navbar .theme-btn {
+      font-size: 1.3em;
+      color: var(--primary-dark);
+      background: none;
+      border: none;
+      margin-left: 8px;
+    }
+    .layout {
+      display: flex;
+      min-height: calc(100vh - 64px);
+      transition: all var(--transition);
+    }
+    .sidebar {
+      width: 270px;
+      background: var(--card);
+      border-right: 1px solid var(--border);
+      padding: 24px 0 24px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      transition: background var(--transition);
+    }
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px 6px 24px;
+      font-weight: 600;
+      font-size: 1.08em;
+    }
+    .sidebar-list {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: 0 8px 0 8px;
+    }
+    .project-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      border-radius: var(--radius);
+      background: none;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: background var(--transition), border var(--transition);
+      font-size: 1.05em;
+    }
+    .project-item.selected {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary-dark);
+    }
+    .project-item .count {
+      font-size: 0.95em;
+      color: var(--primary-dark);
+      background: #e0e7ff;
+      border-radius: 8px;
+      padding: 2px 8px;
+      margin-left: 8px;
+    }
+    .project-item.selected .count {
+      background: #fff3;
+      color: #fff;
+    }
+    .project-item .actions {
+      display: flex;
+      gap: 4px;
+    }
+    .project-item .actions button {
+      font-size: 1.1em;
+      color: var(--primary-dark);
+      background: none;
+      border: none;
+      border-radius: 8px;
+      padding: 2px 6px;
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition);
+    }
+    .project-item .actions button:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+    .add-project-btn {
+      margin: 0 24px;
+      padding: 10px 0;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 1.08em;
+      cursor: pointer;
+      transition: background var(--transition);
+    }
+    .add-project-btn:hover {
+      background: var(--primary-dark);
+    }
+    .main {
+      flex: 1 1 auto;
+      padding: 32px 32px 32px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      min-width: 0;
+    }
+    .filters {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .filters input, .filters select {
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      background: #f3f6fa;
+      font-size: 1.05rem;
+      outline: none;
+      min-width: 90px;
+      color: var(--text);
+      transition: background var(--transition), color var(--transition);
+    }
+    [data-theme="dark"] .filters input, [data-theme="dark"] .filters select {
+      background: #23272f;
+      color: #f7fafc;
+    }
+    .tasks-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
+      width: 100%;
+    }
+    .task-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px 20px 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      border: 1.5px solid var(--border);
+      transition: box-shadow var(--transition), border var(--transition), background var(--transition);
+      min-width: 0;
+    }
+    .task-card.done {
+      opacity: 0.6;
+      text-decoration: line-through;
+    }
+    .task-card .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .task-card .title {
+      font-weight: 600;
+      font-size: 1.13em;
+      flex: 1 1 auto;
+      word-break: break-word;
+    }
+    .task-card .tags {
+      font-size: 0.98em;
+      color: var(--primary-dark);
+      margin-right: 8px;
+      opacity: 0.8;
+    }
+    .task-card .meta {
+      font-size: 0.97em;
+      color: #888;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 2px;
+    }
+    .task-card .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .task-card .actions button {
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 1.2em;
+      color: var(--primary-dark);
+      border-radius: 8px;
+      padding: 4px 8px;
+      transition: background var(--transition), color var(--transition);
+    }
+    .task-card .actions button:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+    .fab {
+      position: fixed;
+      right: 32px;
+      bottom: 32px;
+      width: 64px;
+      height: 64px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 50%;
+      box-shadow: 0 4px 24px rgba(30,64,175,0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2em;
+      border: none;
+      cursor: pointer;
+      z-index: 100;
+      transition: background var(--transition), box-shadow var(--transition);
+    }
+    .fab:hover {
+      background: var(--primary-dark);
+      box-shadow: 0 8px 32px rgba(30,64,175,0.22);
+    }
+    /* Modal */
+    .modal-bg {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal {
+      min-width: 320px;
+      max-width: 95vw;
+      background: var(--card);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      padding: 32px 28px 24px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      position: relative;
+      overflow: hidden;
+      border: 1.5px solid var(--border);
+    }
+    .modal h2 {
+      margin: 0 0 8px 0;
+      font-size: 1.3em;
+      font-weight: 600;
+    }
+    .modal label {
+      font-size: 1em;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+    .modal input, .modal select {
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      background: #f3f6fa;
+      font-size: 1.05rem;
+      outline: none;
+      margin-bottom: 10px;
+      color: var(--text);
+      transition: background var(--transition), color var(--transition);
+    }
+    [data-theme="dark"] .modal input, [data-theme="dark"] .modal select {
+      background: #23272f;
+      color: #f7fafc;
+    }
+    .modal .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+    .modal .modal-actions button {
+      padding: 10px 20px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 600;
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background var(--transition);
+    }
+    .modal .modal-actions button.cancel {
+      background: #e0e0e0;
+      color: #222;
+    }
+    .modal .close {
+      position: absolute;
+      top: 12px;
+      right: 18px;
+      font-size: 1.3em;
+      color: #888;
+      background: none;
+      border: none;
+      cursor: pointer;
+      z-index: 3;
+    }
+    @media (max-width: 1100px) {
+      .main { padding: 24px 4vw 24px 4vw; }
+      .sidebar { width: 180px; }
+    }
+    @media (max-width: 900px) {
+      .layout { flex-direction: column; }
+      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+      .main { padding: 18px 2vw 18px 2vw; }
+      .fab { right: 16px; bottom: 16px; }
+    }
+    @media (max-width: 600px) {
+      .navbar { padding: 0 8px; }
+      .main { padding: 8px 2vw 8px 2vw; }
+      .sidebar-header, .add-project-btn { margin: 0 8px; }
+      .modal { padding: 18px 6vw 14px 6vw; }
+    }
+    @media (max-width: 400px) {
+      .modal { min-width: 90vw; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo"><span class="material-icons">dashboard_customize</span> Menadżer zadań</div>
+    <div class="actions">
+      <button onclick="exportData('json')" title="Eksportuj JSON"><span class="material-icons">download</span></button>
+      <button onclick="exportData('csv')" title="Eksportuj CSV"><span class="material-icons">table_view</span></button>
+      <button class="theme-btn" onclick="toggleTheme()" title="Zmień motyw"><span class="material-icons">dark_mode</span></button>
+    </div>
+  </nav>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span>Projekty</span>
+        <button class="material-icons" onclick="showProjectModal()" title="Dodaj projekt">add</button>
+      </div>
+      <div class="sidebar-list" id="projectsList"></div>
+      <button class="add-project-btn" onclick="showProjectModal()">+ Nowy projekt</button>
+    </aside>
+    <main class="main">
+      <div class="filters">
+        <input type="text" id="filterTag" placeholder="Tag..." oninput="renderTasks()">
+        <select id="filterPriority" onchange="renderTasks()">
+          <option value="">Priorytet</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+        </select>
+        <input type="date" id="filterDeadline" onchange="renderTasks()">
+      </div>
+      <div class="tasks-list" id="tasksList"></div>
+    </main>
+  </div>
+  <button class="fab" onclick="showTaskModal()" title="Dodaj zadanie"><span class="material-icons">add</span></button>
+  <div id="modalRoot"></div>
+  <script>
+    const API = "http://localhost:8080";
+    let projects = [];
+    let tasks = [];
+    let selectedProject = null;
+    let editingProject = null;
+    let editingTask = null;
+
+    // Motyw
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      document.querySelector('.theme-btn .material-icons').textContent = theme === 'dark' ? 'light_mode' : 'dark_mode';
+    }
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      setTheme(current === 'dark' ? 'light' : 'dark');
+    }
+    (() => {
+      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      setTheme(theme);
+    })();
+
+    // Projekty
+    async function fetchProjects() {
+      const res = await fetch(`${API}/projects`);
+      projects = await res.json();
+      renderProjects();
+    }
+    function renderProjects() {
+      const list = document.getElementById('projectsList');
+      list.innerHTML = '';
+      projects.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'project-item' + (selectedProject === p.id ? ' selected' : '');
+        div.innerHTML = `<span>${p.name}</span><span class="count">${tasks.filter(t=>t.project_id===p.id).length}</span>`;
+        div.onclick = () => { selectedProject = p.id; renderProjects(); renderTasks(); };
+        div.oncontextmenu = (e) => {
+          e.preventDefault();
+          showProjectModal(p);
+        };
+        list.appendChild(div);
+      });
+    }
+    async function saveProject() {
+      const name = document.getElementById('projectName').value.trim();
+      if (!name) return alert('Nazwa projektu jest wymagana!');
+      if (editingProject) {
+        await fetch(`${API}/projects/${editingProject.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...editingProject, name })
+        });
+      } else {
+        await fetch(`${API}/projects`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name })
+        });
+      }
+      closeModal();
+      fetchProjects();
+    }
+
+    // Zadania
+    async function fetchTasks() {
+      const res = await fetch(`${API}/tasks`);
+      tasks = await res.json();
+      renderTasks();
+      renderProjects();
+    }
+    function renderTasks() {
+      const list = document.getElementById('tasksList');
+      list.innerHTML = '';
+      let filtered = tasks;
+      if (selectedProject) filtered = filtered.filter(t => t.project_id === selectedProject);
+      const tag = document.getElementById('filterTag').value.trim();
+      if (tag) filtered = filtered.filter(t => (t.tags||[]).some(tg => tg.toLowerCase().includes(tag.toLowerCase())));
+      const prio = document.getElementById('filterPriority').value;
+      if (prio) filtered = filtered.filter(t => t.priority == prio);
+      const deadline = document.getElementById('filterDeadline').value;
+      if (deadline) filtered = filtered.filter(t => t.deadline && t.deadline.startsWith(deadline));
+      filtered.sort((a,b) => new Date(a.deadline) - new Date(b.deadline));
+      filtered.forEach(t => {
+        const card = document.createElement('div');
+        card.className = 'task-card' + (t.done ? ' done' : '');
+        card.innerHTML = `
+          <div class="row">
+            <span class="title">${t.title}</span>
+            <span class="tags">${(t.tags||[]).join(', ')}</span>
+          </div>
+          <div class="meta">
+            ${t.deadline ? `<span class="material-icons" style="font-size:1em;vertical-align:middle;">event</span> ${t.deadline.substring(0,10)}` : ''}
+            ${t.priority ? `<span class="material-icons" style="font-size:1em;vertical-align:middle;">flag</span> Priorytet: ${t.priority}` : ''}
+            <span>${t.done ? '<span class="material-icons" style="color:var(--primary)">check_circle</span> Wykonane' : ''}</span>
+          </div>
+          <div class="actions">
+            <button title="Edytuj" onclick="showTaskModal(tasks.find(x=>x.id===${t.id}))"><span class="material-icons">edit</span></button>
+            <button title="Usuń" onclick="deleteTask(${t.id})"><span class="material-icons">delete</span></button>
+            <button title="${t.done ? 'Oznacz jako niewykonane' : 'Oznacz jako wykonane'}" onclick="toggleDone(${t.id})"><span class="material-icons">${t.done ? 'check_box' : 'check_box_outline_blank'}</span></button>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+    async function saveTask() {
+      const title = document.getElementById('taskTitle').value.trim();
+      const tags = document.getElementById('taskTags').value.split(',').map(x=>x.trim()).filter(Boolean);
+      const priority = parseInt(document.getElementById('taskPriority').value) || 0;
+      const deadline = document.getElementById('taskDeadline').value;
+      if (!title) return alert('Tytuł zadania jest wymagany!');
+      let payload = {
+        title,
+        tags,
+        priority,
+        deadline: deadline ? new Date(deadline).toISOString() : null,
+        done: editingTask ? editingTask.done : false,
+        project_id: selectedProject || null
+      };
+      if (editingTask) {
+        await fetch(`${API}/tasks/${editingTask.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...editingTask, ...payload })
+        });
+      } else {
+        await fetch(`${API}/tasks`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      }
+      closeModal();
+      fetchTasks();
+    }
+    async function deleteTask(id) {
+      if (!confirm('Na pewno usunąć zadanie?')) return;
+      await fetch(`${API}/tasks/${id}`, { method: 'DELETE' });
+      fetchTasks();
+    }
+    async function toggleDone(id) {
+      const task = tasks.find(t => t.id === id);
+      if (!task) return;
+      await fetch(`${API}/tasks/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...task, done: !task.done })
+      });
+      fetchTasks();
+    }
+    // Modale
+    function showProjectModal(project) {
+      editingProject = project;
+      const modal = document.createElement('div');
+      modal.className = 'modal-bg';
+      modal.innerHTML = `
+        <div class="modal">
+          <button class="close" onclick="closeModal()"><span class="material-icons">close</span></button>
+          <h2>${project ? 'Edytuj projekt' : 'Nowy projekt'}</h2>
+          <label>Nazwa</label>
+          <input id="projectName" value="${project ? project.name : ''}" maxlength="40">
+          <div class="modal-actions">
+            <button class="cancel" onclick="closeModal()">Anuluj</button>
+            <button onclick="saveProject()">Zapisz</button>
+          </div>
+        </div>
+      `;
+      document.getElementById('modalRoot').appendChild(modal);
+    }
+    function showTaskModal(task) {
+      editingTask = task;
+      const modal = document.createElement('div');
+      modal.className = 'modal-bg';
+      modal.innerHTML = `
+        <div class="modal">
+          <button class="close" onclick="closeModal()"><span class="material-icons">close</span></button>
+          <h2>${task ? 'Edytuj zadanie' : 'Nowe zadanie'}</h2>
+          <label>Tytuł</label>
+          <input id="taskTitle" value="${task ? task.title : ''}" maxlength="60">
+          <label>Tagi (przecinek)</label>
+          <input id="taskTags" value="${task ? (task.tags||[]).join(', ') : ''}">
+          <label>Priorytet</label>
+          <select id="taskPriority">
+            <option value="">Brak</option>
+            <option value="1" ${task && task.priority==1?'selected':''}>1</option>
+            <option value="2" ${task && task.priority==2?'selected':''}>2</option>
+            <option value="3" ${task && task.priority==3?'selected':''}>3</option>
+            <option value="4" ${task && task.priority==4?'selected':''}>4</option>
+            <option value="5" ${task && task.priority==5?'selected':''}>5</option>
+          </select>
+          <label>Deadline</label>
+          <input type="date" id="taskDeadline" value="${task && task.deadline ? task.deadline.substring(0,10) : ''}">
+          <div class="modal-actions">
+            <button class="cancel" onclick="closeModal()">Anuluj</button>
+            <button onclick="saveTask()">Zapisz</button>
+          </div>
+        </div>
+      `;
+      document.getElementById('modalRoot').appendChild(modal);
+    }
+    function closeModal() {
+      document.getElementById('modalRoot').innerHTML = '';
+      editingProject = null;
+      editingTask = null;
+    }
+    // Eksport
+    function exportData(format) {
+      window.open(`${API}/export?format=${format}`);
+    }
+    // Inicjalizacja
+    fetchProjects();
+    fetchTasks();
+  </script>
+</body>
+</html> 
+</html> 
