@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
+	"os"
 )
 
 const (
@@ -10,44 +12,96 @@ const (
 	tasksFile    = "data_tasks.json"
 )
 
-func loadData() {
+func LoadProjects() error {
+	file, err := os.Open(projectsFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			log.Println("Plik projektów nie istnieje, tworzenie nowego")
+			return SaveProjects() // Utwórz pusty plik
+		}
+		return err
+	}
+	defer file.Close()
+
+	var list []Project
+	if err := json.NewDecoder(file).Decode(&list); err != nil {
+		return err
+	}
+
 	mutex.Lock()
 	defer mutex.Unlock()
-	// Projects
-	if data, err := ioutil.ReadFile(projectsFile); err == nil {
-		var list []Project
-		if err := json.Unmarshal(data, &list); err == nil {
-			for _, p := range list {
-				projects[p.ID] = p
+	projects = make(map[int]Project)
+	maxID := 0
+	if list != nil {
+		for _, p := range list {
+			projects[p.ID] = p
+			if p.ID > maxID {
+				maxID = p.ID
 			}
 		}
 	}
-	// Tasks
-	if data, err := ioutil.ReadFile(tasksFile); err == nil {
-		var list []Task
-		if err := json.Unmarshal(data, &list); err == nil {
-			for _, t := range list {
-				tasks[t.ID] = t
-			}
-		}
-	}
+	nextProjectID = maxID + 1
+	return nil
 }
 
-func saveData() {
+func SaveProjects() error {
+	mutex.RLock()
+	var list []Project
+	for _, p := range projects {
+		list = append(list, p)
+	}
+	mutex.RUnlock()
+
+	data, err := json.MarshalIndent(list, "", "  ")
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(projectsFile, data, 0644)
+}
+
+func LoadTasks() error {
+	file, err := os.Open(tasksFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			log.Println("Plik zadań nie istnieje, tworzenie nowego")
+			return SaveTasks() // Utwórz pusty plik
+		}
+		return err
+	}
+	defer file.Close()
+
+	var list []Task
+	if err := json.NewDecoder(file).Decode(&list); err != nil {
+		return err
+	}
+
 	mutex.Lock()
 	defer mutex.Unlock()
-	// Projects
-	var plist []Project
-	for _, p := range projects {
-		plist = append(plist, p)
+	tasks = make(map[int]Task)
+	maxID := 0
+	if list != nil {
+		for _, t := range list {
+			tasks[t.ID] = t
+			if t.ID > maxID {
+				maxID = t.ID
+			}
+		}
 	}
-	pdata, _ := json.MarshalIndent(plist, "", "  ")
-	_ = ioutil.WriteFile(projectsFile, pdata, 0644)
-	// Tasks
-	var tlist []Task
+	nextTaskID = maxID + 1
+	return nil
+}
+
+func SaveTasks() error {
+	mutex.RLock()
+	var list []Task
 	for _, t := range tasks {
-		tlist = append(tlist, t)
+		list = append(list, t)
 	}
-	data, _ := json.MarshalIndent(tlist, "", "  ")
-	_ = ioutil.WriteFile(tasksFile, data, 0644)
-} 
+	mutex.RUnlock()
+
+	data, err := json.MarshalIndent(list, "", "  ")
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(tasksFile, data, 0644)
+}

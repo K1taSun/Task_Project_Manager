@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/csv"
 	"encoding/json"
-	"math/rand"
 	"net/http"
 	"sort"
 	"strconv"
@@ -28,12 +27,18 @@ func withCORS(h http.HandlerFunc) http.HandlerFunc {
 func projectsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		mutex.Lock()
-		defer mutex.Unlock()
+		mutex.RLock()
 		var list []Project
 		for _, p := range projects {
 			list = append(list, p)
 		}
+		mutex.RUnlock()
+
+		// Jeśli lista jest pusta, zwróć pustą tablicę zamiast null
+		if list == nil {
+			list = []Project{}
+		}
+
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(list)
 	case http.MethodPost:
@@ -46,11 +51,15 @@ func projectsHandler(w http.ResponseWriter, r *http.Request) {
 			writeJSONError(w, http.StatusBadRequest, err.Error())
 			return
 		}
+		p.ID = generateProjectID()
 		mutex.Lock()
-		p.ID = rand.Intn(1_000_000)
 		projects[p.ID] = p
 		mutex.Unlock()
-		saveData()
+		if err := SaveProjects(); err != nil {
+			writeJSONError(w, http.StatusInternalServerError, "Błąd zapisu projektów")
+			return
+		}
+		broadcastChange()
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(p)
@@ -67,13 +76,15 @@ func projectHandler(w http.ResponseWriter, r *http.Request) {
 		writeJSONError(w, http.StatusBadRequest, "Invalid project ID")
 		return
 	}
-	mutex.Lock()
-	defer mutex.Unlock()
+
+	mutex.RLock()
 	p, ok := projects[id]
+	mutex.RUnlock()
 	if !ok {
 		writeJSONError(w, http.StatusNotFound, "Project not found")
 		return
 	}
+
 	switch r.Method {
 	case http.MethodGet:
 		w.Header().Set("Content-Type", "application/json")
@@ -89,13 +100,36 @@ func projectHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		updated.ID = id
+		mutex.Lock()
 		projects[id] = updated
-		saveData()
+		mutex.Unlock()
+		if err := SaveProjects(); err != nil {
+			writeJSONError(w, http.StatusInternalServerError, "Błąd zapisu projektów")
+			return
+		}
+		broadcastChange()
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(updated)
 	case http.MethodDelete:
+		// Usuń wszystkie zadania powiązane z projektem
+		mutex.Lock()
 		delete(projects, id)
-		saveData()
+		// Usuń zadania powiązane z projektem
+		for taskID, task := range tasks {
+			if task.ProjectID == id {
+				delete(tasks, taskID)
+			}
+		}
+		mutex.Unlock()
+		if err := SaveProjects(); err != nil {
+			writeJSONError(w, http.StatusInternalServerError, "Błąd zapisu projektów")
+			return
+		}
+		if err := SaveTasks(); err != nil {
+			writeJSONError(w, http.StatusInternalServerError, "Błąd zapisu zadań")
+			return
+		}
+		broadcastChange()
 		writeJSONMessage(w, http.StatusNoContent, "Project deleted")
 	default:
 		writeJSONError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -106,12 +140,18 @@ func projectHandler(w http.ResponseWriter, r *http.Request) {
 func tasksHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		mutex.Lock()
-		defer mutex.Unlock()
+		mutex.RLock()
 		var list []Task
 		for _, t := range tasks {
 			list = append(list, t)
 		}
+		mutex.RUnlock()
+
+		// Jeśli lista jest pusta, zwróć pustą tablicę zamiast null
+		if list == nil {
+			list = []Task{}
+		}
+
 		// Filtrowanie
 		tag := r.URL.Query().Get("tag")
 		minPriority, _ := strconv.Atoi(r.URL.Query().Get("min_priority"))
@@ -125,6 +165,7 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 		if after != "" {
 			afterTime, _ = time.Parse(time.RFC3339, after)
 		}
+
 		var filtered []Task
 		for _, t := range list {
 			if tag != "" {
@@ -145,14 +186,15 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 			if maxPriority != 0 && t.Priority > maxPriority {
 				continue
 			}
-			if !beforeTime.IsZero() && t.Deadline.After(beforeTime) {
+			if !beforeTime.IsZero() && t.Deadline != nil && t.Deadline.After(beforeTime) {
 				continue
 			}
-			if !afterTime.IsZero() && t.Deadline.Before(afterTime) {
+			if !afterTime.IsZero() && t.Deadline != nil && t.Deadline.Before(afterTime) {
 				continue
 			}
 			filtered = append(filtered, t)
 		}
+
 		// Sortowanie
 		sortBy := r.URL.Query().Get("sort")
 		order := r.URL.Query().Get("order")
@@ -166,9 +208,21 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 					return filtered[i].Priority < filtered[j].Priority
 				case "deadline":
 					if order == "desc" {
-						return filtered[i].Deadline.After(filtered[j].Deadline)
+						if filtered[i].Deadline == nil {
+							return false
+						}
+						if filtered[j].Deadline == nil {
+							return true
+						}
+						return filtered[i].Deadline.After(*filtered[j].Deadline)
 					}
-					return filtered[i].Deadline.Before(filtered[j].Deadline)
+					if filtered[i].Deadline == nil {
+						return false
+					}
+					if filtered[j].Deadline == nil {
+						return true
+					}
+					return filtered[i].Deadline.Before(*filtered[j].Deadline)
 				case "title":
 					if order == "desc" {
 						return filtered[i].Title > filtered[j].Title
@@ -179,6 +233,9 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 			})
 		}
 		w.Header().Set("Content-Type", "application/json")
+		if filtered == nil {
+			filtered = []Task{}
+		}
 		json.NewEncoder(w).Encode(filtered)
 	case http.MethodPost:
 		var t Task
@@ -190,11 +247,15 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 			writeJSONError(w, http.StatusBadRequest, err.Error())
 			return
 		}
+		t.ID = generateTaskID()
 		mutex.Lock()
-		t.ID = rand.Intn(1_000_000)
 		tasks[t.ID] = t
 		mutex.Unlock()
-		saveData()
+		if err := SaveTasks(); err != nil {
+			writeJSONError(w, http.StatusInternalServerError, "Błąd zapisu zadań")
+			return
+		}
+		broadcastChange()
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(t)
@@ -233,16 +294,26 @@ func projectTasksHandler(w http.ResponseWriter, r *http.Request) {
 		writeJSONError(w, http.StatusNotFound, "Not found")
 		return
 	}
+
+	// Sprawdź czy projekt istnieje
+	mutex.RLock()
+	_, projectExists := projects[id]
+	mutex.RUnlock()
+	if !projectExists {
+		writeJSONError(w, http.StatusNotFound, "Project not found")
+		return
+	}
+
 	switch r.Method {
 	case http.MethodGet:
-		mutex.Lock()
-		defer mutex.Unlock()
+		mutex.RLock()
 		var list []Task
 		for _, t := range tasks {
 			if t.ProjectID == id {
 				list = append(list, t)
 			}
 		}
+		mutex.RUnlock()
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(list)
 	case http.MethodPost:
@@ -255,12 +326,16 @@ func projectTasksHandler(w http.ResponseWriter, r *http.Request) {
 			writeJSONError(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		t.ID = rand.Intn(1_000_000)
+		t.ID = generateTaskID()
 		t.ProjectID = id
 		mutex.Lock()
 		tasks[t.ID] = t
 		mutex.Unlock()
-		saveData()
+		if err := SaveTasks(); err != nil {
+			writeJSONError(w, http.StatusInternalServerError, "Błąd zapisu zadań")
+			return
+		}
+		broadcastChange()
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(t)
@@ -277,13 +352,15 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 		writeJSONError(w, http.StatusBadRequest, "Invalid task ID")
 		return
 	}
-	mutex.Lock()
-	defer mutex.Unlock()
+
+	mutex.RLock()
 	t, ok := tasks[id]
+	mutex.RUnlock()
 	if !ok {
 		writeJSONError(w, http.StatusNotFound, "Task not found")
 		return
 	}
+
 	switch r.Method {
 	case http.MethodGet:
 		w.Header().Set("Content-Type", "application/json")
@@ -299,13 +376,25 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		updated.ID = id
+		mutex.Lock()
 		tasks[id] = updated
-		saveData()
+		mutex.Unlock()
+		if err := SaveTasks(); err != nil {
+			writeJSONError(w, http.StatusInternalServerError, "Błąd zapisu zadań")
+			return
+		}
+		broadcastChange()
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(updated)
 	case http.MethodDelete:
+		mutex.Lock()
 		delete(tasks, id)
-		saveData()
+		mutex.Unlock()
+		if err := SaveTasks(); err != nil {
+			writeJSONError(w, http.StatusInternalServerError, "Błąd zapisu zadań")
+			return
+		}
+		broadcastChange()
 		writeJSONMessage(w, http.StatusNoContent, "Task deleted")
 	default:
 		writeJSONError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -323,8 +412,7 @@ func exportHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func exportJSON(w http.ResponseWriter, r *http.Request) {
-	mutex.Lock()
-	defer mutex.Unlock()
+	mutex.RLock()
 	data := struct {
 		Projects []Project `json:"projects"`
 		Tasks    []Task    `json:"tasks"`
@@ -335,13 +423,13 @@ func exportJSON(w http.ResponseWriter, r *http.Request) {
 	for _, t := range tasks {
 		data.Tasks = append(data.Tasks, t)
 	}
+	mutex.RUnlock()
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)
 }
 
 func exportCSV(w http.ResponseWriter, r *http.Request) {
-	mutex.Lock()
-	defer mutex.Unlock()
+	mutex.RLock()
 	w.Header().Set("Content-Type", "text/csv")
 	w.Header().Set("Content-Disposition", "attachment;filename=export.csv")
 	csvWriter := csv.NewWriter(w)
@@ -354,15 +442,20 @@ func exportCSV(w http.ResponseWriter, r *http.Request) {
 	// Zadania
 	csvWriter.Write([]string{"TaskID", "ProjectID", "Title", "Deadline", "Tags", "Priority", "Done"})
 	for _, t := range tasks {
+		deadlineStr := ""
+		if t.Deadline != nil {
+			deadlineStr = t.Deadline.Format(time.RFC3339)
+		}
 		csvWriter.Write([]string{
 			strconv.Itoa(t.ID),
 			strconv.Itoa(t.ProjectID),
 			t.Title,
-			t.Deadline.Format(time.RFC3339),
+			deadlineStr,
 			"[" + joinTags(t.Tags) + "]",
 			strconv.Itoa(t.Priority),
 			strconv.FormatBool(t.Done),
 		})
 	}
+	mutex.RUnlock()
 	csvWriter.Flush()
 }

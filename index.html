@@ -116,24 +116,7 @@
       overflow-y: auto;
       padding: 0 8px 0 8px;
     }
-    .project-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      margin-bottom: 8px;
-      border-radius: var(--radius);
-      background: none;
-      cursor: pointer;
-      border: 2px solid transparent;
-      transition: background var(--transition), border var(--transition);
-      font-size: 1.05em;
-    }
-    .project-item.selected {
-      background: var(--primary);
-      color: #fff;
-      border-color: var(--primary-dark);
-    }
+
     .project-item .count {
       font-size: 0.95em;
       color: var(--primary-dark);
@@ -421,8 +404,11 @@
       <button class="add-project-btn" onclick="showProjectModal()">+ Nowy projekt</button>
     </aside>
     <main class="main">
+      <div id="projectDetails"></div>
       <div class="filters">
+        <label for="filterTag" style="display:none">Tag</label>
         <input type="text" id="filterTag" placeholder="Tag..." oninput="renderTasks()">
+        <label for="filterPriority" style="display:none">Priorytet</label>
         <select id="filterPriority" onchange="renderTasks()">
           <option value="">Priorytet</option>
           <option value="1">1</option>
@@ -431,6 +417,7 @@
           <option value="4">4</option>
           <option value="5">5</option>
         </select>
+        <label for="filterDeadline" style="display:none">Deadline</label>
         <input type="date" id="filterDeadline" onchange="renderTasks()">
       </div>
       <div class="tasks-list" id="tasksList"></div>
@@ -456,7 +443,8 @@
       const current = document.documentElement.getAttribute('data-theme') || 'light';
       setTheme(current === 'dark' ? 'light' : 'dark');
     }
-    (() => {
+    // Inicjalizacja motywu
+    (function() {
       const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
       setTheme(theme);
     })();
@@ -464,8 +452,10 @@
     // Projekty
     async function fetchProjects() {
       const res = await fetch(`${API}/projects`);
+      
       projects = await res.json();
       renderProjects();
+      renderProjectDetails();
     }
     function renderProjects() {
       const list = document.getElementById('projectsList');
@@ -474,7 +464,7 @@
         const div = document.createElement('div');
         div.className = 'project-item' + (selectedProject === p.id ? ' selected' : '');
         div.innerHTML = `<span>${p.name}</span><span class="count">${tasks.filter(t=>t.project_id===p.id).length}</span>`;
-        div.onclick = () => { selectedProject = p.id; renderProjects(); renderTasks(); };
+        div.onclick = () => { selectedProject = p.id; renderProjects(); renderTasks(); renderProjectDetails(); };
         div.oncontextmenu = (e) => {
           e.preventDefault();
           showProjectModal(p);
@@ -482,24 +472,55 @@
         list.appendChild(div);
       });
     }
+    function renderProjectDetails() {
+      const details = document.getElementById('projectDetails');
+      if (!selectedProject) {
+        details.innerHTML = '';
+        return;
+      }
+      const project = projects.find(p => p.id === selectedProject);
+      if (!project) {
+        details.innerHTML = '';
+        return;
+      }
+      const count = tasks.filter(t => t.project_id === project.id).length;
+      details.innerHTML = `
+        <div style="background:var(--card);border-radius:16px;padding:18px 22px;margin-bottom:18px;box-shadow:var(--shadow);border:1.5px solid var(--border);display:flex;align-items:center;gap:18px;">
+          <span class="material-icons" style="font-size:2em;color:var(--primary);">folder</span>
+          <div style="flex:1;">
+            <div style="font-size:1.18em;font-weight:600;">${project.name}</div>
+            <div style="color:#888;font-size:0.98em;">Zadań: ${count}</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button title='Edytuj projekt' onclick='showProjectModal(projects.find(p=>p.id===${project.id}))' style='background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;'><span class="material-icons">edit</span></button>
+            <button title='Usuń projekt' onclick='deleteProject(${project.id})' style='background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;'><span class="material-icons">delete</span></button>
+          </div>
+        </div>
+      `;
+    }
     async function saveProject() {
       const name = document.getElementById('projectName').value.trim();
       if (!name) return alert('Nazwa projektu jest wymagana!');
-      if (editingProject) {
-        await fetch(`${API}/projects/${editingProject.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...editingProject, name })
-        });
-      } else {
-        await fetch(`${API}/projects`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name })
-        });
+      try {
+        let res;
+        if (editingProject) {
+          res = await safeFetch(`${API}/projects/${editingProject.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...editingProject, name })
+          });
+        } else {
+          res = await safeFetch(`${API}/projects`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name })
+          });
+        }
+        closeModal();
+        await fetchProjects();
+      } catch (error) {
+        console.error("Failed to save project:", error);
       }
-      closeModal();
-      fetchProjects();
     }
 
     // Zadania
@@ -507,9 +528,9 @@
       const res = await fetch(`${API}/tasks`);
       tasks = await res.json();
       renderTasks();
-      renderProjects();
     }
     function renderTasks() {
+      renderProjectDetails();
       const list = document.getElementById('tasksList');
       list.innerHTML = '';
       let filtered = tasks;
@@ -517,10 +538,15 @@
       const tag = document.getElementById('filterTag').value.trim();
       if (tag) filtered = filtered.filter(t => (t.tags||[]).some(tg => tg.toLowerCase().includes(tag.toLowerCase())));
       const prio = document.getElementById('filterPriority').value;
-      if (prio) filtered = filtered.filter(t => t.priority == prio);
+      if (prio) filtered = filtered.filter(t => t.priority === prio);
       const deadline = document.getElementById('filterDeadline').value;
       if (deadline) filtered = filtered.filter(t => t.deadline && t.deadline.startsWith(deadline));
-      filtered.sort((a,b) => new Date(a.deadline) - new Date(b.deadline));
+      filtered.sort((a,b) => {
+        if (!a.deadline && !b.deadline) return 0;
+        if (!a.deadline) return 1;
+        if (!b.deadline) return -1;
+        return new Date(a.deadline) - new Date(b.deadline);
+      });
       filtered.forEach(t => {
         const card = document.createElement('div');
         card.className = 'task-card' + (t.done ? ' done' : '');
@@ -555,38 +581,55 @@
         priority,
         deadline: deadline ? new Date(deadline).toISOString() : null,
         done: editingTask ? editingTask.done : false,
-        project_id: selectedProject || null
+        project_id: editingTask ? editingTask.project_id : (selectedProject || null)
       };
-      if (editingTask) {
-        await fetch(`${API}/tasks/${editingTask.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...editingTask, ...payload })
-        });
-      } else {
-        await fetch(`${API}/tasks`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+      try {
+        let res;
+        if (editingTask) {
+          res = await safeFetch(`${API}/tasks/${editingTask.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...editingTask, ...payload })
+          });
+        } else {
+          res = await safeFetch(`${API}/tasks`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        }
+        closeModal();
+        await fetchTasks();
+      } catch (error) {
+        console.error("Failed to save task:", error);
       }
-      closeModal();
-      fetchTasks();
     }
     async function deleteTask(id) {
       if (!confirm('Na pewno usunąć zadanie?')) return;
-      await fetch(`${API}/tasks/${id}`, { method: 'DELETE' });
-      fetchTasks();
+      try {
+        await safeFetch(`${API}/tasks/${id}`, { method: 'DELETE' });
+        await fetchTasks();
+      } catch (error) {
+        console.error("Failed to delete task:", error);
+      }
     }
-    async function toggleDone(id) {
-      const task = tasks.find(t => t.id === id);
-      if (!task) return;
-      await fetch(`${API}/tasks/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...task, done: !task.done })
-      });
-      fetchTasks();
+    async function deleteProject(id) {
+      if (!confirm('Na pewno usunąć projekt?')) return;
+      try {
+        await safeFetch(`${API}/projects/${id}`, { method: 'DELETE' });
+        // Natychmiast usuń projekt i powiązane zadania z frontu
+        projects = projects.filter(p => p.id !== id);
+        tasks = tasks.filter(t => t.project_id !== id);
+        if (selectedProject === id) selectedProject = null;
+        renderProjects();
+        renderProjectDetails();
+        renderTasks();
+        // Opcjonalnie odśwież dane z backendu w tle
+        await fetchProjects();
+        await fetchTasks();
+      } catch (error) {
+        console.error("Failed to delete project:", error);
+      }
     }
     // Modale
     function showProjectModal(project) {
@@ -597,7 +640,7 @@
         <div class="modal">
           <button class="close" onclick="closeModal()"><span class="material-icons">close</span></button>
           <h2>${project ? 'Edytuj projekt' : 'Nowy projekt'}</h2>
-          <label>Nazwa</label>
+          <label for="projectName">Nazwa</label>
           <input id="projectName" value="${project ? project.name : ''}" maxlength="40">
           <div class="modal-actions">
             <button class="cancel" onclick="closeModal()">Anuluj</button>
@@ -615,20 +658,20 @@
         <div class="modal">
           <button class="close" onclick="closeModal()"><span class="material-icons">close</span></button>
           <h2>${task ? 'Edytuj zadanie' : 'Nowe zadanie'}</h2>
-          <label>Tytuł</label>
+          <label for="taskTitle">Tytuł</label>
           <input id="taskTitle" value="${task ? task.title : ''}" maxlength="60">
-          <label>Tagi (przecinek)</label>
+          <label for="taskTags">Tagi (przecinek)</label>
           <input id="taskTags" value="${task ? (task.tags||[]).join(', ') : ''}">
-          <label>Priorytet</label>
+          <label for="taskPriority">Priorytet</label>
           <select id="taskPriority">
             <option value="">Brak</option>
-            <option value="1" ${task && task.priority==1?'selected':''}>1</option>
-            <option value="2" ${task && task.priority==2?'selected':''}>2</option>
-            <option value="3" ${task && task.priority==3?'selected':''}>3</option>
-            <option value="4" ${task && task.priority==4?'selected':''}>4</option>
-            <option value="5" ${task && task.priority==5?'selected':''}>5</option>
+            <option value="1" ${task && task.priority===1?'selected':''}>1</option>
+            <option value="2" ${task && task.priority===2?'selected':''}>2</option>
+            <option value="3" ${task && task.priority===3?'selected':''}>3</option>
+            <option value="4" ${task && task.priority===4?'selected':''}>4</option>
+            <option value="5" ${task && task.priority===5?'selected':''}>5</option>
           </select>
-          <label>Deadline</label>
+          <label for="taskDeadline">Deadline (opcjonalny)</label>
           <input type="date" id="taskDeadline" value="${task && task.deadline ? task.deadline.substring(0,10) : ''}">
           <div class="modal-actions">
             <button class="cancel" onclick="closeModal()">Anuluj</button>
@@ -640,17 +683,101 @@
     }
     function closeModal() {
       document.getElementById('modalRoot').innerHTML = '';
-      editingProject = null;
-      editingTask = null;
+      setTimeout(() => {
+        editingProject = null;
+        editingTask = null;
+      }, 0);
     }
     // Eksport
     function exportData(format) {
       window.open(`${API}/export?format=${format}`);
     }
+    // Dodaj funkcję toggleDone jeśli nie istnieje
+    function toggleDone(id) {
+      const task = tasks.find(t => t.id === id);
+      if (!task) return;
+      task.done = !task.done;
+      saveTaskStatus(task);
+    }
+    async function saveTaskStatus(task) {
+      try {
+        await safeFetch(`${API}/tasks/${task.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(task)
+        });
+        await fetchTasks();
+      } catch (error) {
+        console.error("Failed to save task status:", error);
+        // Przywróć poprzedni stan
+        task.done = !task.done;
+        renderTasks();
+      }
+    }
     // Inicjalizacja
-    fetchProjects();
-    fetchTasks();
+    let ws = null;
+    
+    function connectWebSocket() {
+      try {
+        ws = new WebSocket("ws://localhost:8080/ws");
+        ws.onmessage = function(event) {
+          if (event.data === "update") {
+            fetchProjects();
+            fetchTasks();
+          }
+        };
+        ws.onclose = function() {
+          console.log("WebSocket connection closed, attempting to reconnect...");
+          setTimeout(connectWebSocket, 3000);
+        };
+        ws.onerror = function(error) {
+          console.error("WebSocket error:", error);
+        };
+      } catch (error) {
+        console.error("Failed to connect WebSocket:", error);
+        setTimeout(connectWebSocket, 3000);
+      }
+    }
+    
+    // Dodaj obsługę błędów dla fetch
+    async function safeFetch(url, options = {}) {
+      try {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response;
+      } catch (error) {
+        console.error("Fetch error:", error);
+        alert(`Błąd połączenia: ${error.message}`);
+        throw error;
+      }
+    }
+    
+    // Zaktualizuj funkcje fetch
+    async function fetchProjects() {
+      try {
+        const res = await safeFetch(`${API}/projects`);
+        projects = await res.json();
+        renderProjects();
+        renderProjectDetails();
+      } catch (error) {
+        console.error("Failed to fetch projects:", error);
+      }
+    }
+    
+    async function fetchTasks() {
+      try {
+        const res = await safeFetch(`${API}/tasks`);
+        tasks = await res.json();
+        renderTasks();
+      } catch (error) {
+        console.error("Failed to fetch tasks:", error);
+      }
+    }
+    
+    connectWebSocket();
+    Promise.all([fetchProjects(), fetchTasks()]);
   </script>
 </body>
-</html> 
 </html> 
