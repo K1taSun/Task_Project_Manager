@@ -194,7 +194,7 @@
     }
     .filters {
       display: flex;
-      gap: 16px;
+      gap: 12px;
       align-items: center;
       flex-wrap: wrap;
       margin-bottom: 8px;
@@ -209,6 +209,7 @@
       min-width: 90px;
       color: var(--text);
       transition: background var(--transition), color var(--transition);
+      flex: 1 1 auto;
     }
     [data-theme="dark"] .filters input, [data-theme="dark"] .filters select {
       background: #23272f;
@@ -216,7 +217,7 @@
     }
     .tasks-list {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 18px;
       width: 100%;
     }
@@ -243,6 +244,16 @@
     }
     .task-card.compact {
       padding: 12px 16px;
+    }
+    @media (max-width: 768px) {
+      .task-card.compact {
+        padding: 10px 12px;
+      }
+    }
+    @media (max-width: 480px) {
+      .task-card.compact {
+        padding: 8px 10px;
+      }
     }
     .task-card.compact.done .title {
       text-decoration: line-through;
@@ -459,20 +470,81 @@
     .modal .close:hover {
       background: rgba(0,0,0,0.1);
     }
+    @media (max-width: 1200px) {
+      .main { padding: 24px 3vw 24px 3vw; }
+      .sidebar { width: 220px; }
+      .tasks-list {
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+      }
+    }
     @media (max-width: 1100px) {
-      .main { padding: 24px 4vw 24px 4vw; }
-      .sidebar { width: 180px; }
+      .main { padding: 20px 3vw 20px 3vw; }
+      .sidebar { width: 200px; }
+      .tasks-list {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 14px;
+      }
     }
     @media (max-width: 900px) {
       .layout { flex-direction: column; }
-      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
-      .main { padding: 18px 2vw 18px 2vw; }
-      .fab { right: 16px; bottom: 16px; }
+      .sidebar { 
+        width: 100%; 
+        border-right: none; 
+        border-bottom: 1px solid var(--border);
+        padding: 16px 0;
+      }
+      .main { padding: 16px 3vw 16px 3vw; }
+      .fab { right: 20px; bottom: 20px; }
+      .filters {
+        gap: 8px;
+      }
+      .filters input, .filters select {
+        min-width: 80px;
+        font-size: 1rem;
+        padding: 8px 12px;
+      }
+      .tasks-list {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+      }
+    }
+    @media (max-width: 768px) {
+      .navbar { padding: 0 16px; }
+      .navbar .logo { font-size: 1.2em; }
+      .main { padding: 12px 4vw 12px 4vw; }
+      .filters {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+      .filters input, .filters select {
+        min-width: auto;
+        width: 100%;
+      }
+      .tasks-list {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .task-card {
+        padding: 16px 14px 12px 14px;
+      }
+      .fab { 
+        right: 16px; 
+        bottom: 16px; 
+        width: 56px;
+        height: 56px;
+        font-size: 2em;
+      }
     }
     @media (max-width: 600px) {
-      .navbar { padding: 0 8px; }
-      .main { padding: 8px 2vw 8px 2vw; }
-      .sidebar-header, .add-project-btn { margin: 0 8px; }
+      .navbar { padding: 0 12px; }
+      .navbar .logo { font-size: 1.1em; }
+      .main { padding: 8px 3vw 8px 3vw; }
+      .sidebar-header, .add-project-btn { margin: 0 12px; }
+      .task-card {
+        padding: 14px 12px 10px 12px;
+      }
       .modal { 
         padding: 16px 12px 12px 12px; 
         min-width: 95vw;
@@ -490,11 +562,78 @@
         font-size: 0.85em;
       }
     }
+    @media (max-width: 480px) {
+      .navbar { padding: 0 8px; }
+      .navbar .logo { font-size: 1em; }
+      .navbar .logo .material-icons {
+        font-size: 1.2em;
+      }
+      .navbar .actions button {
+        padding: 4px 8px;
+        font-size: 1em;
+      }
+      .navbar .actions {
+        gap: 6px;
+      }
+      .main { padding: 6px 2vw 6px 2vw; }
+      .sidebar-header, .add-project-btn { margin: 0 8px; }
+      .task-card {
+        padding: 12px 10px 8px 10px;
+      }
+      .task-card .title {
+        font-size: 1.1em;
+      }
+      .task-card .description {
+        font-size: 0.9em;
+      }
+      .fab { 
+        right: 12px; 
+        bottom: 12px; 
+        width: 52px;
+        height: 52px;
+        font-size: 1.8em;
+      }
+    }
     @media (max-width: 400px) {
       .modal { 
         min-width: 98vw; 
         max-width: 98vw;
         padding: 12px 8px 8px 8px;
+      }
+      .task-card {
+        padding: 10px 8px 6px 8px;
+      }
+      .task-card .title {
+        font-size: 1.05em;
+      }
+    }
+    /* Landscape orientation on mobile */
+    @media (max-width: 900px) and (orientation: landscape) {
+      .layout { flex-direction: row; }
+      .sidebar { 
+        width: 200px; 
+        border-right: 1px solid var(--border);
+        border-bottom: none;
+        padding: 16px 0;
+      }
+      .main { padding: 12px 3vw 12px 3vw; }
+      .filters {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+      .tasks-list {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      }
+    }
+    
+    /* Hide view text on small screens */
+    @media (max-width: 480px) {
+      .view-text {
+        display: none;
+      }
+      #toggleView {
+        padding: 8px !important;
+        min-width: 40px;
       }
     }
   </style>
@@ -535,8 +674,8 @@
         </select>
         <label for="filterDeadline" style="display:none">Deadline</label>
         <input type="date" id="filterDeadline" onchange="renderTasks()">
-        <button id="toggleView" onclick="toggleView()" style="background:var(--primary);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:0.9em;">
-          <span class="material-icons" style="font-size:1em;vertical-align:middle;">view_list</span> Widok
+        <button id="toggleView" onclick="toggleView()" style="background:var(--primary);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:0.9em;white-space:nowrap;">
+          <span class="material-icons" style="font-size:1em;vertical-align:middle;">view_list</span> <span class="view-text">Widok</span>
         </button>
       </div>
       <div class="tasks-list" id="tasksList"></div>
@@ -928,10 +1067,11 @@
     function toggleView() {
       compactView = !compactView;
       const button = document.getElementById('toggleView');
+      const isSmallScreen = window.innerWidth <= 480;
       if (compactView) {
-        button.innerHTML = '<span class="material-icons" style="font-size:1em;vertical-align:middle;">view_module</span> Karty';
+        button.innerHTML = '<span class="material-icons" style="font-size:1em;vertical-align:middle;">view_module</span>' + (isSmallScreen ? '' : '<span class="view-text">Karty</span>');
       } else {
-        button.innerHTML = '<span class="material-icons" style="font-size:1em;vertical-align:middle;">view_list</span> Lista';
+        button.innerHTML = '<span class="material-icons" style="font-size:1em;vertical-align:middle;">view_list</span>' + (isSmallScreen ? '' : '<span class="view-text">Lista</span>');
       }
       renderTasks();
     }
@@ -1019,6 +1159,17 @@
         console.error("Failed to fetch tasks:", error);
       }
     }
+    
+    // Obsługa zmiany rozmiaru okna
+    window.addEventListener('resize', function() {
+      const button = document.getElementById('toggleView');
+      if (button) {
+        const isSmallScreen = window.innerWidth <= 480;
+        const currentText = compactView ? 'Karty' : 'Lista';
+        const icon = compactView ? 'view_module' : 'view_list';
+        button.innerHTML = '<span class="material-icons" style="font-size:1em;vertical-align:middle;">' + icon + '</span>' + (isSmallScreen ? '' : '<span class="view-text">' + currentText + '</span>');
+      }
+    });
     
     connectWebSocket();
     Promise.all([fetchProjects(), fetchTasks()]);
