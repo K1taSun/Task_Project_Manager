@@ -117,6 +117,28 @@
       padding: 0 8px 0 8px;
     }
 
+    .project-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      margin: 4px 0;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition);
+      color: var(--text);
+      background: transparent;
+    }
+    .project-item:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+    .project-item.selected {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+    }
+
     .project-item .count {
       font-size: 0.95em;
       color: var(--primary-dark);
@@ -198,6 +220,10 @@
       gap: 18px;
       width: 100%;
     }
+    .tasks-list.compact {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
     .task-card {
       background: var(--card);
       border-radius: var(--radius);
@@ -215,6 +241,12 @@
       opacity: 0.6;
       text-decoration: line-through;
     }
+    .task-card.compact {
+      padding: 12px 16px;
+    }
+    .task-card.compact.done .title {
+      text-decoration: line-through;
+    }
     .task-card .row {
       display: flex;
       align-items: center;
@@ -226,6 +258,35 @@
       font-size: 1.13em;
       flex: 1 1 auto;
       word-break: break-word;
+    }
+    .task-card .description {
+      font-size: 0.95em;
+      color: #666;
+      line-height: 1.4;
+      margin: 4px 0;
+      word-break: break-word;
+      max-height: 4.2em;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      cursor: pointer;
+      transition: max-height var(--transition);
+      padding: 4px;
+      border-radius: 6px;
+    }
+    .task-card .description:hover {
+      background: rgba(0,0,0,0.05);
+    }
+    [data-theme="dark"] .task-card .description:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    .task-card .description.expanded {
+      max-height: none;
+      -webkit-line-clamp: unset;
+    }
+    [data-theme="dark"] .task-card .description {
+      color: #aaa;
     }
     .task-card .tags {
       font-size: 0.98em;
@@ -294,59 +355,87 @@
       z-index: 1000;
     }
     .modal {
-      min-width: 320px;
-      max-width: 95vw;
+      min-width: 400px;
+      max-width: 500px;
+      width: 90vw;
       background: var(--card);
-      border-radius: 22px;
+      border-radius: 16px;
       box-shadow: var(--shadow);
-      padding: 32px 28px 24px 28px;
+      padding: 24px 20px 20px 20px;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 12px;
       position: relative;
       overflow: hidden;
       border: 1.5px solid var(--border);
+      animation: modalSlideIn 0.2s ease-out;
+    }
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
     }
     .modal h2 {
-      margin: 0 0 8px 0;
-      font-size: 1.3em;
+      margin: 0 0 12px 0;
+      font-size: 1.2em;
       font-weight: 600;
     }
     .modal label {
-      font-size: 1em;
-      margin-bottom: 4px;
+      font-size: 0.95em;
+      margin-bottom: 6px;
       font-weight: 500;
-    }
-    .modal input, .modal select {
-      padding: 10px 14px;
-      border-radius: 12px;
-      border: 1.5px solid var(--border);
-      background: #f3f6fa;
-      font-size: 1.05rem;
-      outline: none;
-      margin-bottom: 10px;
       color: var(--text);
-      transition: background var(--transition), color var(--transition);
     }
-    [data-theme="dark"] .modal input, [data-theme="dark"] .modal select {
+    .modal input, .modal select, .modal textarea {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #f3f6fa;
+      font-size: 0.95rem;
+      outline: none;
+      margin-bottom: 8px;
+      color: var(--text);
+      transition: background var(--transition), color var(--transition), border var(--transition);
+      font-family: inherit;
+      resize: vertical;
+    }
+    .modal input:focus, .modal select:focus, .modal textarea:focus {
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+    }
+    [data-theme="dark"] .modal input:focus, [data-theme="dark"] .modal select:focus, [data-theme="dark"] .modal textarea:focus {
+      background: #2a2f3a;
+      box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+    }
+    .modal textarea {
+      min-height: 60px;
+      line-height: 1.4;
+    }
+    [data-theme="dark"] .modal input, [data-theme="dark"] .modal select, [data-theme="dark"] .modal textarea {
       background: #23272f;
       color: #f7fafc;
     }
     .modal .modal-actions {
       display: flex;
-      gap: 12px;
+      gap: 8px;
       justify-content: flex-end;
-      margin-top: 8px;
+      margin-top: 12px;
     }
     .modal .modal-actions button {
-      padding: 10px 20px;
-      border-radius: 12px;
+      padding: 8px 16px;
+      border-radius: 8px;
       border: none;
       font-weight: 600;
       background: var(--primary);
       color: #fff;
       cursor: pointer;
-      font-size: 1em;
+      font-size: 0.9em;
       transition: background var(--transition);
     }
     .modal .modal-actions button.cancel {
@@ -355,14 +444,20 @@
     }
     .modal .close {
       position: absolute;
-      top: 12px;
-      right: 18px;
-      font-size: 1.3em;
+      top: 8px;
+      right: 12px;
+      font-size: 1.2em;
       color: #888;
       background: none;
       border: none;
       cursor: pointer;
       z-index: 3;
+      padding: 4px;
+      border-radius: 4px;
+      transition: background var(--transition);
+    }
+    .modal .close:hover {
+      background: rgba(0,0,0,0.1);
     }
     @media (max-width: 1100px) {
       .main { padding: 24px 4vw 24px 4vw; }
@@ -378,10 +473,29 @@
       .navbar { padding: 0 8px; }
       .main { padding: 8px 2vw 8px 2vw; }
       .sidebar-header, .add-project-btn { margin: 0 8px; }
-      .modal { padding: 18px 6vw 14px 6vw; }
+      .modal { 
+        padding: 16px 12px 12px 12px; 
+        min-width: 95vw;
+        max-width: 95vw;
+        gap: 8px;
+      }
+      .modal h2 { font-size: 1.1em; margin-bottom: 8px; }
+      .modal input, .modal select, .modal textarea { 
+        padding: 6px 10px; 
+        font-size: 0.9rem;
+        margin-bottom: 6px;
+      }
+      .modal .modal-actions button { 
+        padding: 6px 12px; 
+        font-size: 0.85em;
+      }
     }
     @media (max-width: 400px) {
-      .modal { min-width: 90vw; }
+      .modal { 
+        min-width: 98vw; 
+        max-width: 98vw;
+        padding: 12px 8px 8px 8px;
+      }
     }
   </style>
 </head>
@@ -406,6 +520,8 @@
     <main class="main">
       <div id="projectDetails"></div>
       <div class="filters">
+        <label for="filterSearch" style="display:none">Szukaj</label>
+        <input type="text" id="filterSearch" placeholder="Szukaj w tytule i opisie..." oninput="renderTasks()">
         <label for="filterTag" style="display:none">Tag</label>
         <input type="text" id="filterTag" placeholder="Tag..." oninput="renderTasks()">
         <label for="filterPriority" style="display:none">Priorytet</label>
@@ -419,6 +535,9 @@
         </select>
         <label for="filterDeadline" style="display:none">Deadline</label>
         <input type="date" id="filterDeadline" onchange="renderTasks()">
+        <button id="toggleView" onclick="toggleView()" style="background:var(--primary);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:0.9em;">
+          <span class="material-icons" style="font-size:1em;vertical-align:middle;">view_list</span> Widok
+        </button>
       </div>
       <div class="tasks-list" id="tasksList"></div>
     </main>
@@ -432,6 +551,7 @@
     let selectedProject = null;
     let editingProject = null;
     let editingTask = null;
+    let compactView = false; // Nowa zmienna do śledzenia widoku
 
     // Motyw
     function setTheme(theme) {
@@ -460,7 +580,19 @@
     function renderProjects() {
       const list = document.getElementById('projectsList');
       list.innerHTML = '';
-      projects.forEach(p => {
+      
+      // Sortuj projekty alfabetycznie
+      const sortedProjects = [...projects].sort((a, b) => a.name.localeCompare(b.name));
+      
+      if (sortedProjects.length === 0) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.style.cssText = 'text-align:center;padding:20px;color:#888;font-style:italic;';
+        emptyDiv.textContent = 'Brak projektów';
+        list.appendChild(emptyDiv);
+        return;
+      }
+      
+      sortedProjects.forEach(p => {
         const div = document.createElement('div');
         div.className = 'project-item' + (selectedProject === p.id ? ' selected' : '');
         div.innerHTML = `<span>${p.name}</span><span class="count">${tasks.filter(t=>t.project_id===p.id).length}</span>`;
@@ -469,13 +601,20 @@
           e.preventDefault();
           showProjectModal(p);
         };
+        // Dodaj tooltip z informacją o prawym kliku
+        div.title = `Prawy klik: Edytuj projekt`;
         list.appendChild(div);
       });
     }
     function renderProjectDetails() {
       const details = document.getElementById('projectDetails');
       if (!selectedProject) {
-        details.innerHTML = '';
+        details.innerHTML = `
+          <div style="background:var(--card);border-radius:16px;padding:40px 22px;margin-bottom:18px;box-shadow:var(--shadow);border:1.5px solid var(--border);text-align:center;color:#888;">
+            <span class="material-icons" style="font-size:3em;display:block;margin-bottom:10px;opacity:0.5;">folder_open</span>
+            <div style="font-size:1.1em;">Wybierz projekt z listy po lewej stronie</div>
+          </div>
+        `;
         return;
       }
       const project = projects.find(p => p.id === selectedProject);
@@ -492,6 +631,7 @@
             <div style="color:#888;font-size:0.98em;">Zadań: ${count}</div>
           </div>
           <div style="display:flex;gap:8px;">
+            <button title='Dodaj zadanie do projektu' onclick='showTaskModal(null, ${project.id})' style='background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;'><span class="material-icons">add_task</span></button>
             <button title='Edytuj projekt' onclick='showProjectModal(projects.find(p=>p.id===${project.id}))' style='background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;'><span class="material-icons">edit</span></button>
             <button title='Usuń projekt' onclick='deleteProject(${project.id})' style='background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;'><span class="material-icons">delete</span></button>
           </div>
@@ -515,6 +655,9 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name })
           });
+          // Automatycznie wybierz nowy projekt
+          const newProject = await res.json();
+          selectedProject = newProject.id;
         }
         closeModal();
         await fetchProjects();
@@ -533,8 +676,16 @@
       renderProjectDetails();
       const list = document.getElementById('tasksList');
       list.innerHTML = '';
+      list.className = 'tasks-list' + (compactView ? ' compact' : '');
       let filtered = tasks;
       if (selectedProject) filtered = filtered.filter(t => t.project_id === selectedProject);
+      
+      const search = document.getElementById('filterSearch').value.trim().toLowerCase();
+      if (search) filtered = filtered.filter(t => 
+        t.title.toLowerCase().includes(search) || 
+        (t.description && t.description.toLowerCase().includes(search))
+      );
+      
       const tag = document.getElementById('filterTag').value.trim();
       if (tag) filtered = filtered.filter(t => (t.tags||[]).some(tg => tg.toLowerCase().includes(tag.toLowerCase())));
       const prio = document.getElementById('filterPriority').value;
@@ -547,41 +698,84 @@
         if (!b.deadline) return -1;
         return new Date(a.deadline) - new Date(b.deadline);
       });
+      if (filtered.length === 0) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.style.cssText = 'grid-column:1/-1;text-align:center;padding:40px;color:#888;font-style:italic;background:var(--card);border-radius:var(--radius);border:1.5px solid var(--border);';
+        emptyDiv.innerHTML = '<span class="material-icons" style="font-size:3em;display:block;margin-bottom:10px;opacity:0.5;">assignment</span>Brak zadań';
+        list.appendChild(emptyDiv);
+        return;
+      }
+      
       filtered.forEach(t => {
         const card = document.createElement('div');
-        card.className = 'task-card' + (t.done ? ' done' : '');
-        card.innerHTML = `
-          <div class="row">
-            <span class="title">${t.title}</span>
-            <span class="tags">${(t.tags||[]).join(', ')}</span>
-          </div>
-          <div class="meta">
-            ${t.deadline ? `<span class="material-icons" style="font-size:1em;vertical-align:middle;">event</span> ${t.deadline.substring(0,10)}` : ''}
-            ${t.priority ? `<span class="material-icons" style="font-size:1em;vertical-align:middle;">flag</span> Priorytet: ${t.priority}` : ''}
-            <span>${t.done ? '<span class="material-icons" style="color:var(--primary)">check_circle</span> Wykonane' : ''}</span>
-          </div>
-          <div class="actions">
-            <button title="Edytuj" onclick="showTaskModal(tasks.find(x=>x.id===${t.id}))"><span class="material-icons">edit</span></button>
-            <button title="Usuń" onclick="deleteTask(${t.id})"><span class="material-icons">delete</span></button>
-            <button title="${t.done ? 'Oznacz jako niewykonane' : 'Oznacz jako wykonane'}" onclick="toggleDone(${t.id})"><span class="material-icons">${t.done ? 'check_box' : 'check_box_outline_blank'}</span></button>
-          </div>
-        `;
+        card.className = 'task-card' + (t.done ? ' done' : '') + (compactView ? ' compact' : '');
+        
+        if (compactView) {
+          // Widok kompaktowy - lista
+          card.innerHTML = `
+            <div style="display:flex;align-items:center;gap:12px;width:100%;">
+              <button title="${t.done ? 'Oznacz jako niewykonane' : 'Oznacz jako wykonane'}" onclick="toggleDone(${t.id})" style="background:none;border:none;cursor:pointer;color:var(--primary);">
+                <span class="material-icons">${t.done ? 'check_box' : 'check_box_outline_blank'}</span>
+              </button>
+              <div style="flex:1;min-width:0;">
+                <div style="font-weight:600;font-size:1.1em;margin-bottom:4px;">${t.title}</div>
+                ${t.description ? `<div style="font-size:0.9em;color:#666;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.description}</div>` : ''}
+                <div style="display:flex;gap:8px;align-items:center;font-size:0.9em;color:#888;">
+                  ${t.deadline ? `<span><span class="material-icons" style="font-size:1em;vertical-align:middle;">event</span> ${t.deadline.substring(0,10)}</span>` : ''}
+                  ${t.priority ? `<span><span class="material-icons" style="font-size:1em;vertical-align:middle;">flag</span> ${t.priority}</span>` : ''}
+                  ${(t.tags||[]).length > 0 ? `<span style="color:var(--primary);">${(t.tags||[]).join(', ')}</span>` : ''}
+                </div>
+              </div>
+              <div style="display:flex;gap:4px;">
+                <button title="Edytuj" onclick="showTaskModal(tasks.find(x=>x.id===${t.id}))" style="background:none;border:none;cursor:pointer;padding:4px;border-radius:4px;color:var(--primary);">
+                  <span class="material-icons">edit</span>
+                </button>
+                <button title="Usuń" onclick="deleteTask(${t.id})" style="background:none;border:none;cursor:pointer;padding:4px;border-radius:4px;color:var(--primary);">
+                  <span class="material-icons">delete</span>
+                </button>
+              </div>
+            </div>
+          `;
+        } else {
+          // Widok kart
+          card.innerHTML = `
+            <div class="row">
+              <span class="title">${t.title}</span>
+              <span class="tags">${(t.tags||[]).join(', ')}</span>
+            </div>
+            ${t.description ? `<div class="description" onclick="toggleDescription(this)" title="Kliknij aby rozwinąć">${t.description}</div>` : ''}
+            <div class="meta">
+              ${t.deadline ? `<span class="material-icons" style="font-size:1em;vertical-align:middle;">event</span> ${t.deadline.substring(0,10)}` : ''}
+              ${t.priority ? `<span class="material-icons" style="font-size:1em;vertical-align:middle;">flag</span> Priorytet: ${t.priority}` : ''}
+              <span>${t.done ? '<span class="material-icons" style="color:var(--primary)">check_circle</span> Wykonane' : ''}</span>
+            </div>
+            <div class="actions">
+              <button title="Edytuj" onclick="showTaskModal(tasks.find(x=>x.id===${t.id}))"><span class="material-icons">edit</span></button>
+              <button title="Usuń" onclick="deleteTask(${t.id})"><span class="material-icons">delete</span></button>
+              <button title="${t.done ? 'Oznacz jako niewykonane' : 'Oznacz jako wykonane'}" onclick="toggleDone(${t.id})"><span class="material-icons">${t.done ? 'check_box' : 'check_box_outline_blank'}</span></button>
+            </div>
+          `;
+        }
+        
         list.appendChild(card);
       });
     }
     async function saveTask() {
       const title = document.getElementById('taskTitle').value.trim();
+      const description = document.getElementById('taskDescription').value.trim();
+      const projectId = document.getElementById('taskProject').value ? parseInt(document.getElementById('taskProject').value) : null;
       const tags = document.getElementById('taskTags').value.split(',').map(x=>x.trim()).filter(Boolean);
       const priority = parseInt(document.getElementById('taskPriority').value) || 0;
       const deadline = document.getElementById('taskDeadline').value;
       if (!title) return alert('Tytuł zadania jest wymagany!');
       let payload = {
         title,
+        description,
         tags,
         priority,
         deadline: deadline ? new Date(deadline).toISOString() : null,
         done: editingTask ? editingTask.done : false,
-        project_id: editingTask ? editingTask.project_id : (selectedProject || null)
+        project_id: editingTask ? editingTask.project_id : projectId
       };
       try {
         let res;
@@ -597,6 +791,13 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
+          // Automatycznie wybierz projekt dla nowego zadania
+          const newTask = await res.json();
+          if (newTask.project_id && !selectedProject) {
+            selectedProject = newTask.project_id;
+          } else if (newTask.project_id) {
+            selectedProject = newTask.project_id;
+          }
         }
         closeModal();
         await fetchTasks();
@@ -650,16 +851,28 @@
       `;
       document.getElementById('modalRoot').appendChild(modal);
     }
-    function showTaskModal(task) {
+    function showTaskModal(task, projectId = null) {
       editingTask = task;
+      // Jeśli podano projectId, użyj go jako domyślnego projektu
+      if (projectId && !task) {
+        selectedProject = projectId;
+      }
       const modal = document.createElement('div');
       modal.className = 'modal-bg';
       modal.innerHTML = `
         <div class="modal">
           <button class="close" onclick="closeModal()"><span class="material-icons">close</span></button>
           <h2>${task ? 'Edytuj zadanie' : 'Nowe zadanie'}</h2>
+          <label for="taskProject">Projekt</label>
+          <select id="taskProject">
+            <option value="">Brak projektu</option>
+            ${projects.map(p => `<option value="${p.id}" ${(task ? task.project_id : selectedProject) === p.id ? 'selected' : ''}>${p.name}</option>`).join('')}
+          </select>
           <label for="taskTitle">Tytuł</label>
           <input id="taskTitle" value="${task ? task.title : ''}" maxlength="60">
+          <label for="taskDescription">Opis (opcjonalny)</label>
+          <textarea id="taskDescription" rows="3" placeholder="Dodaj szczegółowy opis zadania..." maxlength="1000" oninput="updateCharCount()">${task ? (task.description || '') : ''}</textarea>
+          <div id="charCount" style="text-align:right;font-size:0.8em;color:#888;margin-top:-6px;margin-bottom:8px;">0/1000</div>
           <label for="taskTags">Tagi (przecinek)</label>
           <input id="taskTags" value="${task ? (task.tags||[]).join(', ') : ''}">
           <label for="taskPriority">Priorytet</label>
@@ -680,6 +893,8 @@
         </div>
       `;
       document.getElementById('modalRoot').appendChild(modal);
+      // Inicjalizuj licznik znaków
+      setTimeout(updateCharCount, 100);
     }
     function closeModal() {
       document.getElementById('modalRoot').innerHTML = '';
@@ -692,6 +907,35 @@
     function exportData(format) {
       window.open(`${API}/export?format=${format}`);
     }
+    // Funkcja do rozwijania opisu
+    function toggleDescription(element) {
+      element.classList.toggle('expanded');
+    }
+    
+    // Funkcja do aktualizacji licznika znaków
+    function updateCharCount() {
+      const textarea = document.getElementById('taskDescription');
+      const charCount = document.getElementById('charCount');
+      if (textarea && charCount) {
+        const length = textarea.value.length;
+        const maxLength = textarea.maxLength;
+        charCount.textContent = `${length}/${maxLength}`;
+        charCount.style.color = length > maxLength * 0.9 ? '#e74c3c' : '#888';
+      }
+    }
+    
+    // Funkcja do przełączania widoku
+    function toggleView() {
+      compactView = !compactView;
+      const button = document.getElementById('toggleView');
+      if (compactView) {
+        button.innerHTML = '<span class="material-icons" style="font-size:1em;vertical-align:middle;">view_module</span> Karty';
+      } else {
+        button.innerHTML = '<span class="material-icons" style="font-size:1em;vertical-align:middle;">view_list</span> Lista';
+      }
+      renderTasks();
+    }
+    
     // Dodaj funkcję toggleDone jeśli nie istnieje
     function toggleDone(id) {
       const task = tasks.find(t => t.id === id);

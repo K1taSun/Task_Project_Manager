@@ -19,6 +19,9 @@ func validateTask(t *Task) error {
 	if len(t.Title) > 200 {
 		return fmt.Errorf("Task title too long (max 200 characters)")
 	}
+	if len(t.Description) > 1000 {
+		return fmt.Errorf("Task description too long (max 1000 characters)")
+	}
 	if t.Priority < 0 || t.Priority > 5 {
 		return fmt.Errorf("Priority must be between 0 and 5")
 	}

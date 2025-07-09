@@ -440,7 +440,7 @@ func exportCSV(w http.ResponseWriter, r *http.Request) {
 	}
 	csvWriter.Write([]string{})
 	// Zadania
-	csvWriter.Write([]string{"TaskID", "ProjectID", "Title", "Deadline", "Tags", "Priority", "Done"})
+	csvWriter.Write([]string{"TaskID", "ProjectID", "Title", "Description", "Deadline", "Tags", "Priority", "Done"})
 	for _, t := range tasks {
 		deadlineStr := ""
 		if t.Deadline != nil {
@@ -450,6 +450,7 @@ func exportCSV(w http.ResponseWriter, r *http.Request) {
 			strconv.Itoa(t.ID),
 			strconv.Itoa(t.ProjectID),
 			t.Title,
+			t.Description,
 			deadlineStr,
 			"[" + joinTags(t.Tags) + "]",
 			strconv.Itoa(t.Priority),

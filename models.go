@@ -11,13 +11,14 @@ type Project struct {
 }
 
 type Task struct {
-	ID        int        `json:"id"`
-	ProjectID int        `json:"project_id"`
-	Title     string     `json:"title"`
-	Deadline  *time.Time `json:"deadline,omitempty"` // Zmiana na pointer aby obsłużyć null
-	Tags      []string   `json:"tags"`
-	Priority  int        `json:"priority"`
-	Done      bool       `json:"done"`
+	ID          int        `json:"id"`
+	ProjectID   int        `json:"project_id"`
+	Title       string     `json:"title"`
+	Description string     `json:"description,omitempty"` // Dodajemy opis
+	Deadline    *time.Time `json:"deadline,omitempty"`    // Zmiana na pointer aby obsłużyć null
+	Tags        []string   `json:"tags"`
+	Priority    int        `json:"priority"`
+	Done        bool       `json:"done"`
 }
 
 var (
