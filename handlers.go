@@ -3,13 +3,17 @@ package main
 import (
 	"encoding/csv"
 	"encoding/json"
+	"log"
 	"net/http"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
 
+// funkcja do CORS
 func withCORS(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -23,7 +27,7 @@ func withCORS(h http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-// /projects (GET, POST)
+// obsługa projektów - GET i POST
 func projectsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
@@ -34,7 +38,7 @@ func projectsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		mutex.RUnlock()
 
-		// Jeśli lista jest pusta, zwróć pustą tablicę zamiast null
+		// jak pusta lista to zwracamy pustą tablicę
 		if list == nil {
 			list = []Project{}
 		}
@@ -43,11 +47,25 @@ func projectsHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(list)
 	case http.MethodPost:
 		var p Project
-		if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
+		err := json.NewDecoder(r.Body).Decode(&p)
+		if err != nil {
 			writeJSONError(w, http.StatusBadRequest, "Invalid JSON")
 			return
 		}
-		if err := validateProject(&p); err != nil {
+		
+		// ustawiamy domyślne wartości
+		now := time.Now()
+		p.CreatedAt = now
+		p.UpdatedAt = now
+		if p.Status == "" {
+			p.Status = "active"
+		}
+		if p.Badge == nil {
+			p.Badge = createDefaultProjectBadge()
+		}
+		
+		err = validateProject(&p)
+		if err != nil {
 			writeJSONError(w, http.StatusBadRequest, err.Error())
 			return
 		}
@@ -55,8 +73,9 @@ func projectsHandler(w http.ResponseWriter, r *http.Request) {
 		mutex.Lock()
 		projects[p.ID] = p
 		mutex.Unlock()
-		if err := SaveProjects(); err != nil {
-			writeJSONError(w, http.StatusInternalServerError, "Błąd zapisu projektów")
+		err = SaveProjects()
+		if err != nil {
+			writeJSONError(w, http.StatusInternalServerError, "Blad zapisu projektow")
 			return
 		}
 		broadcastChange()
@@ -68,12 +87,19 @@ func projectsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// /projects/{id} (GET, PUT, DELETE)
+// obsługa pojedynczego projektu - GET, PUT, DELETE
 func projectHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Path[len("/projects/"):]
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		writeJSONError(w, http.StatusBadRequest, "Invalid project ID")
+		return
+	}
+
+	// sprawdzamy czy ID jest poprawne
+	err = validateID(id)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -90,53 +116,56 @@ func projectHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(p)
 	case http.MethodPut:
-		var updated Project
-		if err := json.NewDecoder(r.Body).Decode(&updated); err != nil {
+		var updatedProject Project
+		err := json.NewDecoder(r.Body).Decode(&updatedProject)
+		if err != nil {
 			writeJSONError(w, http.StatusBadRequest, "Invalid JSON")
 			return
 		}
-		if err := validateProject(&updated); err != nil {
+		
+		// zachowujemy oryginalne ID i datę utworzenia
+		updatedProject.ID = p.ID
+		updatedProject.CreatedAt = p.CreatedAt
+		updatedProject.UpdatedAt = time.Now()
+		
+		err = validateProject(&updatedProject)
+		if err != nil {
 			writeJSONError(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		updated.ID = id
+		
 		mutex.Lock()
-		projects[id] = updated
+		projects[id] = updatedProject
 		mutex.Unlock()
-		if err := SaveProjects(); err != nil {
-			writeJSONError(w, http.StatusInternalServerError, "Błąd zapisu projektów")
+		
+		err = SaveProjects()
+		if err != nil {
+			writeJSONError(w, http.StatusInternalServerError, "Blad zapisu projektow")
 			return
 		}
+		
 		broadcastChange()
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(updated)
+		json.NewEncoder(w).Encode(updatedProject)
 	case http.MethodDelete:
-		// Usuń wszystkie zadania powiązane z projektem
 		mutex.Lock()
 		delete(projects, id)
-		// Usuń zadania powiązane z projektem
-		for taskID, task := range tasks {
-			if task.ProjectID == id {
-				delete(tasks, taskID)
-			}
-		}
 		mutex.Unlock()
-		if err := SaveProjects(); err != nil {
-			writeJSONError(w, http.StatusInternalServerError, "Błąd zapisu projektów")
+		
+		err = SaveProjects()
+		if err != nil {
+			writeJSONError(w, http.StatusInternalServerError, "Blad zapisu projektow")
 			return
 		}
-		if err := SaveTasks(); err != nil {
-			writeJSONError(w, http.StatusInternalServerError, "Błąd zapisu zadań")
-			return
-		}
+		
 		broadcastChange()
-		writeJSONMessage(w, http.StatusNoContent, "Project deleted")
+		writeJSONMessage(w, http.StatusOK, "Project deleted successfully")
 	default:
 		writeJSONError(w, http.StatusMethodNotAllowed, "Method not allowed")
 	}
 }
 
-// /tasks (GET, POST)
+// obsługa zadań - GET i POST
 func tasksHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
@@ -147,12 +176,12 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		mutex.RUnlock()
 
-		// Jeśli lista jest pusta, zwróć pustą tablicę zamiast null
+		// jak pusta lista to zwracamy pustą tablicę
 		if list == nil {
 			list = []Task{}
 		}
 
-		// Filtrowanie
+		// filtrowanie zadań
 		tag := r.URL.Query().Get("tag")
 		minPriority, _ := strconv.Atoi(r.URL.Query().Get("min_priority"))
 		maxPriority, _ := strconv.Atoi(r.URL.Query().Get("max_priority"))
@@ -168,6 +197,7 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 
 		var filtered []Task
 		for _, t := range list {
+			// sprawdzamy tag
 			if tag != "" {
 				found := false
 				for _, tg := range t.Tags {
@@ -180,12 +210,14 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 					continue
 				}
 			}
+			// sprawdzamy priorytet
 			if minPriority != 0 && t.Priority < minPriority {
 				continue
 			}
 			if maxPriority != 0 && t.Priority > maxPriority {
 				continue
 			}
+			// sprawdzamy deadline
 			if !beforeTime.IsZero() && t.Deadline != nil && t.Deadline.After(beforeTime) {
 				continue
 			}
@@ -195,7 +227,7 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 			filtered = append(filtered, t)
 		}
 
-		// Sortowanie
+		// sortowanie zadań
 		sortBy := r.URL.Query().Get("sort")
 		order := r.URL.Query().Get("order")
 		if sortBy != "" {
@@ -243,6 +275,15 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 			writeJSONError(w, http.StatusBadRequest, "Invalid JSON")
 			return
 		}
+		
+		// ustawiamy domyślne wartości
+		now := time.Now()
+		t.CreatedAt = now
+		t.UpdatedAt = now
+		if t.Badge == nil {
+			t.Badge = createPriorityBadge(t.Priority)
+		}
+		
 		if err := validateTask(&t); err != nil {
 			writeJSONError(w, http.StatusBadRequest, err.Error())
 			return
@@ -459,4 +500,174 @@ func exportCSV(w http.ResponseWriter, r *http.Request) {
 	}
 	mutex.RUnlock()
 	csvWriter.Flush()
+}
+
+// /badges - zarządzanie odznakami
+func badgesHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		// zwracamy dostępne typy odznak
+		badgeTypes := map[string]interface{}{
+			"priority": map[string]interface{}{
+				"1": createPriorityBadge(1),
+				"2": createPriorityBadge(2),
+				"3": createPriorityBadge(3),
+				"4": createPriorityBadge(4),
+				"5": createPriorityBadge(5),
+			},
+			"status": map[string]interface{}{
+				"active": &Badge{Text: "Aktywny", Color: "#ffffff", Background: "#10b981", Icon: "play_circle", Type: "status"},
+				"completed": &Badge{Text: "Ukończony", Color: "#ffffff", Background: "#3b82f6", Icon: "check_circle", Type: "status"},
+				"archived": &Badge{Text: "Zarchiwizowany", Color: "#ffffff", Background: "#6b7280", Icon: "archive", Type: "status"},
+			},
+			"category": map[string]interface{}{
+				"bug": &Badge{Text: "Błąd", Color: "#ffffff", Background: "#ef4444", Icon: "bug_report", Type: "category"},
+				"feature": &Badge{Text: "Funkcja", Color: "#ffffff", Background: "#8b5cf6", Icon: "new_releases", Type: "category"},
+				"improvement": &Badge{Text: "Ulepszenie", Color: "#ffffff", Background: "#f59e0b", Icon: "trending_up", Type: "category"},
+			},
+		}
+		
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(badgeTypes)
+	default:
+		writeJSONError(w, http.StatusMethodNotAllowed, "Method not allowed")
+	}
+}
+
+// /stats - statystyki aplikacji
+func statsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		writeJSONError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+	
+	mutex.RLock()
+	projectCount := len(projects)
+	taskCount := len(tasks)
+	
+	// liczymy zadania według priorytetu
+	priorityStats := make(map[int]int)
+	for _, task := range tasks {
+		priorityStats[task.Priority]++
+	}
+	
+	// liczymy ukończone zadania
+	completedTasks := 0
+	for _, task := range tasks {
+		if task.Done {
+			completedTasks++
+		}
+	}
+	
+	// liczymy zadania według projektu
+	projectTaskStats := make(map[int]int)
+	for _, task := range tasks {
+		projectTaskStats[task.ProjectID]++
+	}
+	
+	stats := map[string]interface{}{
+		"projects": map[string]interface{}{
+			"total": projectCount,
+			"active": func() int {
+				count := 0
+				for _, p := range projects {
+					if p.Status == "active" {
+						count++
+					}
+				}
+				return count
+			}(),
+		},
+		"tasks": map[string]interface{}{
+			"total": taskCount,
+			"completed": completedTasks,
+			"pending": taskCount - completedTasks,
+			"by_priority": priorityStats,
+			"by_project": projectTaskStats,
+		},
+		"system": map[string]interface{}{
+			"uptime": time.Since(startTime).String(),
+			"version": "2.0.0",
+		},
+	}
+	mutex.RUnlock()
+	
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(stats)
+}
+
+// WebSocket upgrade handler
+func wsHandler(w http.ResponseWriter, r *http.Request) {
+	upgrader := websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true // pozwalamy na wszystkie originy w trybie deweloperskim
+		},
+	}
+	
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Printf("WebSocket upgrade failed: %v", err)
+		return
+	}
+	defer conn.Close()
+	
+	// dodajemy połączenie do listy aktywnych
+	wsConnections = append(wsConnections, conn)
+	defer func() {
+		// usuwamy połączenie z listy
+		for i, c := range wsConnections {
+			if c == conn {
+				wsConnections = append(wsConnections[:i], wsConnections[i+1:]...)
+				break
+			}
+		}
+	}()
+	
+	// nasłuchujemy na wiadomości
+	for {
+		_, message, err := conn.ReadMessage()
+		if err != nil {
+			log.Printf("WebSocket read error: %v", err)
+			break
+		}
+		
+		// echo message back (można rozszerzyć o obsługę komend)
+		err = conn.WriteMessage(websocket.TextMessage, message)
+		if err != nil {
+			log.Printf("WebSocket write error: %v", err)
+			break
+		}
+	}
+}
+
+// globalne zmienne dla WebSocket
+var (
+	wsConnections []*websocket.Conn
+	startTime     = time.Now()
+)
+
+// funkcja do powiadamiania o zmianach przez WebSocket
+func broadcastChange() {
+	if len(wsConnections) == 0 {
+		return
+	}
+	
+	message := map[string]string{
+		"type": "change",
+		"timestamp": time.Now().Format(time.RFC3339),
+	}
+	
+	data, err := json.Marshal(message)
+	if err != nil {
+		log.Printf("Error marshaling WebSocket message: %v", err)
+		return
+	}
+	
+	// wysyłamy wiadomość do wszystkich aktywnych połączeń
+	for _, conn := range wsConnections {
+		err := conn.WriteMessage(websocket.TextMessage, data)
+		if err != nil {
+			log.Printf("Error sending WebSocket message: %v", err)
+		}
+	}
 }

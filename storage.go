@@ -2,29 +2,26 @@ package main
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"os"
 )
 
-const (
-	projectsFile = "data_projects.json"
-	tasksFile    = "data_tasks.json"
-)
-
+// wczytuje projekty z pliku
+// TODO: dodać obsługę błędów JSON
 func LoadProjects() error {
-	file, err := os.Open(projectsFile)
+	file, err := os.Open(ProjectsFile)
 	if err != nil {
 		if os.IsNotExist(err) {
-			log.Println("Plik projektów nie istnieje, tworzenie nowego")
-			return SaveProjects() // Utwórz pusty plik
+			log.Println("Plik projektow nie istnieje, tworze nowy")
+			return SaveProjects()
 		}
 		return err
 	}
 	defer file.Close()
 
 	var list []Project
-	if err := json.NewDecoder(file).Decode(&list); err != nil {
+	err = json.NewDecoder(file).Decode(&list)
+	if err != nil {
 		return err
 	}
 
@@ -44,6 +41,7 @@ func LoadProjects() error {
 	return nil
 }
 
+// zapisuje projekty do pliku
 func SaveProjects() error {
 	mutex.RLock()
 	var list []Project
@@ -56,22 +54,24 @@ func SaveProjects() error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(projectsFile, data, 0644)
+	return os.WriteFile(ProjectsFile, data, 0644)
 }
 
+// wczytuje zadania z pliku
 func LoadTasks() error {
-	file, err := os.Open(tasksFile)
+	file, err := os.Open(TasksFile)
 	if err != nil {
 		if os.IsNotExist(err) {
-			log.Println("Plik zadań nie istnieje, tworzenie nowego")
-			return SaveTasks() // Utwórz pusty plik
+			log.Println("Plik zadan nie istnieje, tworze nowy")
+			return SaveTasks()
 		}
 		return err
 	}
 	defer file.Close()
 
 	var list []Task
-	if err := json.NewDecoder(file).Decode(&list); err != nil {
+	err = json.NewDecoder(file).Decode(&list)
+	if err != nil {
 		return err
 	}
 
@@ -91,11 +91,12 @@ func LoadTasks() error {
 	return nil
 }
 
+// zapisuje zadania do pliku
 func SaveTasks() error {
 	mutex.RLock()
 	var list []Task
-	for _, t := range tasks {
-		list = append(list, t)
+	for _, p := range tasks {
+		list = append(list, p)
 	}
 	mutex.RUnlock()
 
@@ -103,5 +104,32 @@ func SaveTasks() error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(tasksFile, data, 0644)
+	return os.WriteFile(TasksFile, data, 0644)
+}
+
+// sprawdza czy plik istnieje
+func fileExists(filename string) bool {
+	_, err := os.Stat(filename)
+	return !os.IsNotExist(err)
+}
+
+// tworzy pusty plik JSON
+func createEmptyJSONFile(filename string) error {
+	emptyData := []byte("[]")
+	return os.WriteFile(filename, emptyData, 0644)
+}
+
+// prosta funkcja do sprawdzania rozmiaru pliku
+func getFileSize(filename string) int64 {
+	info, err := os.Stat(filename)
+	if err != nil {
+		return 0
+	}
+	return info.Size()
+}
+
+// prosta funkcja do sprawdzania czy plik jest pusty
+func isFileEmpty(filename string) bool {
+	size := getFileSize(filename)
+	return size == 0
 }
