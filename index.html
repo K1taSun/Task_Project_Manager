@@ -22,6 +22,19 @@
       --radius: 18px;
       --transition: 0.18s cubic-bezier(.4,0,.2,1);
     }
+    
+
+
+    
+    .app {
+      opacity: 0;
+      transition: opacity 0.5s ease-in;
+    }
+    
+    .app.loaded {
+      opacity: 1;
+    }
+    
     [data-theme="dark"] {
       --primary: #60a5fa;
       --primary-dark: #2563eb;
@@ -169,6 +182,45 @@
       background: var(--primary);
       color: #fff;
     }
+    
+    /* Badge Styles */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      transition: all var(--transition);
+    }
+    
+    .badge .badge-icon {
+      font-size: 0.8rem;
+    }
+    
+    .badge.priority-1 { background: #dcfce7; color: #166534; }
+    .badge.priority-2 { background: #fef3c7; color: #92400e; }
+    .badge.priority-3 { background: #fee2e2; color: #991b1b; }
+    .badge.priority-4 { background: #fecaca; color: #7f1d1d; }
+    .badge.priority-5 { background: #fef2f2; color: #450a0a; }
+    
+    .badge.status-active { background: #dcfce7; color: #166534; }
+    .badge.status-completed { background: #dbeafe; color: #1e40af; }
+    .badge.status-archived { background: #e5e7eb; color: #374151; }
+    
+    .badge.category-bug { background: #fee2e2; color: #991b1b; }
+    .badge.category-feature { background: #e0e7ff; color: #3730a3; }
+    .badge.category-improvement { background: #fef3c7; color: #92400e; }
+    
+    .badge.custom {
+      background: var(--primary);
+      color: white;
+    }
+    
     .add-project-btn {
       margin: 0 24px;
       padding: 10px 0;
@@ -639,9 +691,12 @@
   </style>
 </head>
 <body>
+  <!-- Main Application -->
+  <div id="app" class="app">
   <nav class="navbar">
     <div class="logo"><span class="material-icons">dashboard_customize</span> Menadżer zadań</div>
     <div class="actions">
+      <button onclick="showStats()" title="Statystyki"><span class="material-icons">analytics</span></button>
       <button onclick="exportData('json')" title="Eksportuj JSON"><span class="material-icons">download</span></button>
       <button onclick="exportData('csv')" title="Eksportuj CSV"><span class="material-icons">table_view</span></button>
       <button class="theme-btn" onclick="toggleTheme()" title="Zmień motyw"><span class="material-icons">dark_mode</span></button>
@@ -734,7 +789,15 @@
       sortedProjects.forEach(p => {
         const div = document.createElement('div');
         div.className = 'project-item' + (selectedProject === p.id ? ' selected' : '');
-        div.innerHTML = `<span>${p.name}</span><span class="count">${tasks.filter(t=>t.project_id===p.id).length}</span>`;
+        const badgeHtml = p.badge ? `<span class="badge ${p.badge.type}-${p.badge.text.toLowerCase().replace(/\s+/g, '-')}" style="background: ${p.badge.background}; color: ${p.badge.color};">
+          ${p.badge.icon ? `<span class="material-icons badge-icon">${p.badge.icon}</span>` : ''}
+          ${p.badge.text}
+        </span>` : '';
+        
+        div.innerHTML = `<span>${p.name}</span><div style="display: flex; align-items: center; gap: 8px;">
+          ${badgeHtml}
+          <span class="count">${tasks.filter(t=>t.project_id===p.id).length}</span>
+        </div>`;
         div.onclick = () => { selectedProject = p.id; renderProjects(); renderTasks(); renderProjectDetails(); };
         div.oncontextmenu = (e) => {
           e.preventDefault();
@@ -768,6 +831,8 @@
           <div style="flex:1;">
             <div style="font-size:1.18em;font-weight:600;">${project.name}</div>
             <div style="color:#888;font-size:0.98em;">Zadań: ${count}</div>
+            ${project.description ? `<div style="color:#666;font-size:0.9em;margin-top:4px;">${project.description}</div>` : ''}
+            ${project.badge ? `<div style="margin-top:8px;">${renderBadge(project.badge)}</div>` : ''}
           </div>
           <div style="display:flex;gap:8px;">
             <button title='Dodaj zadanie do projektu' onclick='showTaskModal(null, ${project.id})' style='background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;'><span class="material-icons">add_task</span></button>
@@ -1098,6 +1163,80 @@
         renderTasks();
       }
     }
+    // Helper function to render badges
+    function renderBadge(badge) {
+      if (!badge) return '';
+      return `<span class="badge ${badge.type}-${badge.text.toLowerCase().replace(/\s+/g, '-')}" style="background: ${badge.background}; color: ${badge.color};">
+        ${badge.icon ? `<span class="material-icons badge-icon">${badge.icon}</span>` : ''}
+        ${badge.text}
+      </span>`;
+    }
+    
+    // Show statistics modal
+    async function showStats() {
+      try {
+        const response = await fetch(`${API}/stats`);
+        const stats = await response.json();
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+          <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+              <h2>Statystyki aplikacji</h2>
+              <button onclick="closeModal()" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                <div style="text-align: center; padding: 20px; background: var(--card); border-radius: 12px; border: 1px solid var(--border);">
+                  <div style="font-size: 2rem; font-weight: bold; color: var(--primary);">${stats.projects.total}</div>
+                  <div style="color: var(--text);">Projektów</div>
+                </div>
+                <div style="text-align: center; padding: 20px; background: var(--card); border-radius: 12px; border: 1px solid var(--border);">
+                  <div style="font-size: 2rem; font-weight: bold; color: var(--primary);">${stats.tasks.total}</div>
+                  <div style="color: var(--text);">Zadań</div>
+                </div>
+                <div style="text-align: center; padding: 20px; background: var(--card); border-radius: 12px; border: 1px solid var(--border);">
+                  <div style="font-size: 2rem; font-weight: bold; color: #10b981;">${stats.tasks.completed}</div>
+                  <div style="color: var(--text);">Ukończone</div>
+                </div>
+                <div style="text-align: center; padding: 20px; background: var(--card); border-radius: 12px; border: 1px solid var(--border);">
+                  <div style="font-size: 2rem; font-weight: bold; color: #f59e0b;">${stats.tasks.pending}</div>
+                  <div style="color: var(--text);">Oczekujące</div>
+                </div>
+              </div>
+              
+              <div style="margin-bottom: 20px;">
+                <h3>Zadania według priorytetu</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;">
+                  ${Object.entries(stats.tasks.by_priority).map(([priority, count]) => `
+                    <div style="text-align: center; padding: 15px; background: var(--card); border-radius: 8px; border: 1px solid var(--border);">
+                      <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary);">${count}</div>
+                      <div style="color: var(--text); font-size: 0.9rem;">Priorytet ${priority}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+              
+              <div style="margin-bottom: 20px;">
+                <h3>Informacje systemowe</h3>
+                <div style="background: var(--card); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                  <div style="margin-bottom: 10px;"><strong>Wersja:</strong> ${stats.system.version}</div>
+                  <div><strong>Czas działania:</strong> ${stats.system.uptime}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        document.getElementById('modalRoot').appendChild(modal);
+        modal.style.display = 'flex';
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+        alert('Błąd podczas pobierania statystyk');
+      }
+    }
+    
     // Inicjalizacja
     let ws = null;
     
@@ -1173,6 +1312,17 @@
     
     connectWebSocket();
     Promise.all([fetchProjects(), fetchTasks()]);
+    
+    // Trigger fade-in animation for immediate display
+    document.addEventListener('DOMContentLoaded', function() {
+      const app = document.getElementById('app');
+      setTimeout(function() {
+        app.classList.add('loaded');
+      }, 100);
+    });
   </script>
+  </div> <!-- End of app container -->
+  
+
 </body>
 </html> 
