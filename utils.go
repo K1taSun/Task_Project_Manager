@@ -4,28 +4,18 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
 // łączy tagi w string
-// TODO: zrobić to lepiej z strings.Join
 func joinTags(tags []string) string {
-	returnString := ""
-	for i, tag := range tags {
-		if i > 0 {
-			returnString += ","
-		}
-		returnString += tag
-	}
-	return returnString
+	return strings.Join(tags, ",")
 }
 
-// sprawdza czy string jest pusty (prosta funkcja)
+// sprawdza czy string jest pusty
 func isEmptyString(s string) bool {
-	if s == "" {
-		return true
-	}
-	return false
+	return s == ""
 }
 
 // sprawdza czy string ma odpowiednią długość
@@ -50,7 +40,6 @@ func writeJSONMessage(w http.ResponseWriter, status int, msg string) {
 }
 
 // middleware do logowania
-// TODO: dodać więcej informacji w logach
 func logMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
@@ -68,16 +57,4 @@ func projectExists(id int) bool {
 	return exists
 }
 
-// funkcja do powiadamiania o zmianach (pusta na razie)
-// TODO: dodać powiadomienia o zmianach
-// na razie nic nie robi
-
-// prosta funkcja do sprawdzania czy request jest GET
-func isGetRequest(r *http.Request) bool {
-	return r.Method == http.MethodGet
-}
-
-// prosta funkcja do sprawdzania czy request jest POST
-func isPostRequest(r *http.Request) bool {
-	return r.Method == http.MethodPost
-}
+// funkcja do powiadamiania o zmianach

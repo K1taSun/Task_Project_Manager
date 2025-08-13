@@ -7,7 +7,6 @@ import (
 )
 
 // wczytuje projekty z pliku
-// TODO: dodać obsługę błędów JSON
 func LoadProjects() error {
 	file, err := os.Open(ProjectsFile)
 	if err != nil {
@@ -105,31 +104,4 @@ func SaveTasks() error {
 		return err
 	}
 	return os.WriteFile(TasksFile, data, 0644)
-}
-
-// sprawdza czy plik istnieje
-func fileExists(filename string) bool {
-	_, err := os.Stat(filename)
-	return !os.IsNotExist(err)
-}
-
-// tworzy pusty plik JSON
-func createEmptyJSONFile(filename string) error {
-	emptyData := []byte("[]")
-	return os.WriteFile(filename, emptyData, 0644)
-}
-
-// prosta funkcja do sprawdzania rozmiaru pliku
-func getFileSize(filename string) int64 {
-	info, err := os.Stat(filename)
-	if err != nil {
-		return 0
-	}
-	return info.Size()
-}
-
-// prosta funkcja do sprawdzania czy plik jest pusty
-func isFileEmpty(filename string) bool {
-	size := getFileSize(filename)
-	return size == 0
 }

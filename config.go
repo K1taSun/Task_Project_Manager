@@ -6,8 +6,7 @@ import (
 	"os"
 )
 
-// prosta konfiguracja aplikacji
-// TODO: dodać plik konfiguracyjny
+// konfiguracja aplikacji
 
 // stałe konfiguracyjne
 const (
@@ -75,7 +74,6 @@ func printConfig(config *Config) {
 
 // sprawdza czy konfiguracja jest poprawna
 func validateConfig(config *Config) error {
-	// TODO: dodać więcej walidacji
 	if config.Port == "" {
 		return fmt.Errorf("Port cannot be empty")
 	}

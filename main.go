@@ -8,7 +8,6 @@ import (
 
 // main.go - główny plik programu
 // tutaj startuje cała aplikacja
-// TODO: dodać lepsze logowanie błędów
 
 func main() {
 	// ustawiamy logi
@@ -53,7 +52,6 @@ func main() {
 	}
 
 	// dodajemy endpointy
-	// TODO: dodać więcej endpointów
 	http.HandleFunc("/projects", withCORS(logMiddleware(projectsHandler)))
 	http.HandleFunc("/projects/", withCORS(logMiddleware(projectHandler)))
 	http.HandleFunc("/tasks", withCORS(logMiddleware(tasksHandler)))
@@ -77,7 +75,7 @@ func main() {
 	// uruchamiamy serwer
 	serverAddr := config.Host + ":" + config.Port
 	log.Println("Serwer dziala na", serverAddr)
-	log.Println("Otworz https://" + serverAddr + " w przegladarce")
+	log.Println("Otworz http://" + serverAddr + " w przegladarce")
 
 	// startujemy serwer
 	err = http.ListenAndServe(serverAddr, nil)
