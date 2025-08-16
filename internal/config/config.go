@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"fmt"
@@ -6,9 +6,7 @@ import (
 	"os"
 )
 
-// konfiguracja aplikacji
-
-// stałe konfiguracyjne
+// Configuration constants
 const (
 	DefaultPort    = "8080"
 	DefaultHost    = "localhost"
@@ -21,7 +19,7 @@ const (
 	MinPriority    = 0
 )
 
-// struktura konfiguracji
+// Config structure
 type Config struct {
 	Port         string
 	Host         string
@@ -29,8 +27,8 @@ type Config struct {
 	TasksFile    string
 }
 
-// domyślna konfiguracja
-func getDefaultConfig() *Config {
+// Get default configuration
+func GetDefaultConfig() *Config {
 	return &Config{
 		Port:         DefaultPort,
 		Host:         DefaultHost,
@@ -39,11 +37,11 @@ func getDefaultConfig() *Config {
 	}
 }
 
-// wczytuje konfigurację z zmiennych środowiskowych
-func loadConfigFromEnv() *Config {
-	config := getDefaultConfig()
+// Load configuration from environment variables
+func LoadFromEnv() *Config {
+	config := GetDefaultConfig()
 
-	// sprawdzamy zmienne środowiskowe
+	// Check environment variables
 	if port := os.Getenv("PORT"); port != "" {
 		config.Port = port
 	}
@@ -63,17 +61,17 @@ func loadConfigFromEnv() *Config {
 	return config
 }
 
-// wyświetla konfigurację
-func printConfig(config *Config) {
-	log.Printf("Konfiguracja:")
+// Print configuration
+func PrintConfig(config *Config) {
+	log.Printf("Configuration:")
 	log.Printf("  Port: %s", config.Port)
 	log.Printf("  Host: %s", config.Host)
-	log.Printf("  Plik projektów: %s", config.ProjectsFile)
-	log.Printf("  Plik zadań: %s", config.TasksFile)
+	log.Printf("  Projects file: %s", config.ProjectsFile)
+	log.Printf("  Tasks file: %s", config.TasksFile)
 }
 
-// sprawdza czy konfiguracja jest poprawna
-func validateConfig(config *Config) error {
+// Validate configuration
+func ValidateConfig(config *Config) error {
 	if config.Port == "" {
 		return fmt.Errorf("Port cannot be empty")
 	}
