@@ -5,15 +5,13 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sync"
 
 	"Projekt_go/internal/config"
 	"Projekt_go/internal/models"
 )
 
 var (
-	cfg   *config.Config
-	mutex sync.RWMutex
+	cfg *config.Config
 )
 
 // Initialize storage with configuration
@@ -42,12 +40,10 @@ func LoadProjects() error {
 	// Clear existing projects and reload
 	projects := make(map[int]models.Project)
 	maxID := 0
-	if list != nil {
-		for _, p := range list {
-			projects[p.ID] = p
-			if p.ID > maxID {
-				maxID = p.ID
-			}
+	for _, p := range list {
+		projects[p.ID] = p
+		if p.ID > maxID {
+			maxID = p.ID
 		}
 	}
 
@@ -92,12 +88,10 @@ func LoadTasks() error {
 	// Clear existing tasks and reload
 	tasks := make(map[int]models.Task)
 	maxID := 0
-	if list != nil {
-		for _, t := range list {
-			tasks[t.ID] = t
-			if t.ID > maxID {
-				maxID = t.ID
-			}
+	for _, t := range list {
+		tasks[t.ID] = t
+		if t.ID > maxID {
+			maxID = t.ID
 		}
 	}
 

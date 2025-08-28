@@ -33,14 +33,18 @@ func WriteJSONError(w http.ResponseWriter, status int, msg string) {
 	log.Printf("HTTP Error %d: %s", status, msg)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(map[string]string{"error": msg})
+	if err := json.NewEncoder(w).Encode(map[string]string{"error": msg}); err != nil {
+		log.Printf("Failed to encode JSON error response: %v", err)
+	}
 }
 
 // Write JSON message
 func WriteJSONMessage(w http.ResponseWriter, status int, msg string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(map[string]string{"message": msg})
+	if err := json.NewEncoder(w).Encode(map[string]string{"message": msg}); err != nil {
+		log.Printf("Failed to encode JSON message response: %v", err)
+	}
 }
 
 // Logging middleware

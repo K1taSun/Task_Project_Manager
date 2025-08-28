@@ -74,7 +74,10 @@ func ProjectsHandler(w http.ResponseWriter, r *http.Request) {
 		broadcastChange()
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(p)
+		if err := json.NewEncoder(w).Encode(p); err != nil {
+			utils.WriteJSONError(w, http.StatusInternalServerError, "Error encoding project")
+			return
+		}
 
 	default:
 		utils.WriteJSONError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -392,7 +395,10 @@ func ExportHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Content-Disposition", "attachment; filename=export.json")
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			utils.WriteJSONError(w, http.StatusInternalServerError, "Error writing JSON data")
+			return
+		}
 
 	case "csv":
 		csv, err := storage.ExportToCSV()
@@ -402,7 +408,10 @@ func ExportHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "text/csv")
 		w.Header().Set("Content-Disposition", "attachment; filename=export.csv")
-		w.Write([]byte(csv))
+		if _, err := w.Write([]byte(csv)); err != nil {
+			utils.WriteJSONError(w, http.StatusInternalServerError, "Error writing CSV data")
+			return
+		}
 
 	default:
 		utils.WriteJSONError(w, http.StatusBadRequest, "Unsupported format")

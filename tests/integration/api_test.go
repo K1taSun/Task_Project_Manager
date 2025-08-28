@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"Projekt_go/internal/api"
@@ -122,10 +123,13 @@ func TestProjectEndpoint(t *testing.T) {
 	defer resp.Body.Close()
 
 	var createdProject models.Project
-	json.NewDecoder(resp.Body).Decode(&createdProject)
+	err = json.NewDecoder(resp.Body).Decode(&createdProject)
+	if err != nil {
+		t.Fatalf("Failed to decode response: %v", err)
+	}
 
 	// Test GET /projects/{id}
-	resp, err = http.Get(server.URL + "/projects/" + string(rune(createdProject.ID)))
+	resp, err = http.Get(server.URL + "/projects/" + strconv.Itoa(createdProject.ID))
 	if err != nil {
 		t.Fatalf("Failed to get project: %v", err)
 	}
@@ -153,7 +157,7 @@ func TestProjectEndpoint(t *testing.T) {
 	}
 
 	updatedData, _ := json.Marshal(updatedProject)
-	req, _ := http.NewRequest("PUT", server.URL+"/projects/"+string(rune(createdProject.ID)), bytes.NewBuffer(updatedData))
+	req, _ := http.NewRequest("PUT", server.URL+"/projects/"+strconv.Itoa(createdProject.ID), bytes.NewBuffer(updatedData))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
@@ -168,7 +172,7 @@ func TestProjectEndpoint(t *testing.T) {
 	}
 
 	// Test DELETE /projects/{id}
-	req, _ = http.NewRequest("DELETE", server.URL+"/projects/"+string(rune(createdProject.ID)), nil)
+	req, _ = http.NewRequest("DELETE", server.URL+"/projects/"+strconv.Itoa(createdProject.ID), nil)
 	resp, err = client.Do(req)
 	if err != nil {
 		t.Fatalf("Failed to delete project: %v", err)
@@ -199,7 +203,10 @@ func TestTasksEndpoint(t *testing.T) {
 	defer resp.Body.Close()
 
 	var createdProject models.Project
-	json.NewDecoder(resp.Body).Decode(&createdProject)
+	err = json.NewDecoder(resp.Body).Decode(&createdProject)
+	if err != nil {
+		t.Fatalf("Failed to decode response: %v", err)
+	}
 
 	// Test POST /tasks
 	task := models.Task{
@@ -289,10 +296,13 @@ func TestTaskEndpoint(t *testing.T) {
 	defer resp.Body.Close()
 
 	var createdTask models.Task
-	json.NewDecoder(resp.Body).Decode(&createdTask)
+	err = json.NewDecoder(resp.Body).Decode(&createdTask)
+	if err != nil {
+		t.Fatalf("Failed to decode response: %v", err)
+	}
 
 	// Test GET /tasks/{id}
-	resp, err = http.Get(server.URL + "/tasks/" + string(rune(createdTask.ID)))
+	resp, err = http.Get(server.URL + "/tasks/" + strconv.Itoa(createdTask.ID))
 	if err != nil {
 		t.Fatalf("Failed to get task: %v", err)
 	}
@@ -321,7 +331,7 @@ func TestTaskEndpoint(t *testing.T) {
 	}
 
 	updatedData, _ := json.Marshal(updatedTask)
-	req, _ := http.NewRequest("PUT", server.URL+"/tasks/"+string(rune(createdTask.ID)), bytes.NewBuffer(updatedData))
+	req, _ := http.NewRequest("PUT", server.URL+"/tasks/"+strconv.Itoa(createdTask.ID), bytes.NewBuffer(updatedData))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
@@ -336,7 +346,7 @@ func TestTaskEndpoint(t *testing.T) {
 	}
 
 	// Test DELETE /tasks/{id}
-	req, _ = http.NewRequest("DELETE", server.URL+"/tasks/"+string(rune(createdTask.ID)), nil)
+	req, _ = http.NewRequest("DELETE", server.URL+"/tasks/"+strconv.Itoa(createdTask.ID), nil)
 	resp, err = client.Do(req)
 	if err != nil {
 		t.Fatalf("Failed to delete task: %v", err)
