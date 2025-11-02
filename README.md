@@ -18,6 +18,16 @@
 
 ---
 
+## Interfejs w skrócie
+
+- Górny pasek zawiera przycisk **Szybkiego podglądu** (menu), eksport danych oraz przełącznik motywu.
+- Lewy panel pokazuje projekty z liczbą zadań i podpowiedzią edycji pod prawym klawiszem.
+- W widoku projektu od razu widać listę zadań z akcjami „oznacz ukończone” i „edytuj”.
+- Filtry (wyszukiwarka, tag, priorytet, dzień) działają na bieżącej liście zadań.
+- Przycisk typu FAB w prawym dolnym rogu umożliwia dodanie zadania z dowolnego miejsca.
+
+---
+
 ## Technologie
 
 - **Backend:** Go 1.21+
@@ -85,9 +95,53 @@
 
 ---
 
+## Konfiguracja
+
+| Zmienna          | Domyślna wartość      | Opis                                                |
+|------------------|------------------------|-----------------------------------------------------|
+| `HOST`           | `localhost`            | Adres interfejsu serwera HTTP                      |
+| `PORT`           | `8080`                 | Port nasłuchu HTTP                                 |
+| `PROJECTS_FILE`  | `data_projects.json`   | Ścieżka do pliku z projektami                      |
+| `TASKS_FILE`     | `data_tasks.json`      | Ścieżka do pliku z zadaniami                       |
+
+Pliki z danymi tworzą się automatycznie. Jeśli chcesz zacząć od pustej bazy, ustaw w nich `[]` lub wskaż inne lokalizacje.
+
+---
+
 ## Przykładowe dane
 
-Pliki `data_projects.json` i `data_tasks.json` są generowane automatycznie przy pierwszym uruchomieniu. Możesz je wyczyścić do pustej tablicy `[]`, jeżeli chcesz zacząć od zera.
+Pliki `data_projects.json` i `data_tasks.json` są generowane automatycznie przy pierwszym uruchomieniu. Poniżej przykładowa struktura rekordów:
+
+```jsonc
+// data_projects.json
+[
+  {
+    "id": 1,
+    "name": "Projekt 1",
+    "status": "active",
+    "badge": { "text": "Nowy", "background": "#3b82f6", "type": "status" },
+    "created_at": "2025-11-02T20:15:14+01:00",
+    "updated_at": "2025-11-02T20:15:14+01:00"
+  }
+]
+
+// data_tasks.json
+[
+  {
+    "id": 1,
+    "project_id": 1,
+    "title": "Przygotować plan sprintu",
+    "priority": 4,
+    "tags": ["planowanie"],
+    "deadline": "2025-11-10T00:00:00Z",
+    "badge": { "text": "Krytyczny", "background": "#dc2626", "type": "priority" },
+    "created_at": "2025-11-02T20:16:46+01:00",
+    "updated_at": "2025-11-02T20:16:46+01:00"
+  }
+]
+```
+
+> Tip: Przed publikacją w repozytorium możesz zresetować pliki danych do pustych tablic, aby nie trzymać prywatnych informacji.
 
 ---
 
@@ -97,6 +151,7 @@ Pliki `data_projects.json` i `data_tasks.json` są generowane automatycznie przy
 - [ ] Autoryzacja użytkowników i role
 - [ ] Zaawansowane metryki oraz dashboard
 - [ ] Powiadomienia e-mail / webhooki
+- [ ] Testy jednostkowe i automatyczna walidacja linterem/go vet
 
 ---
 
@@ -106,5 +161,5 @@ MIT
 
 ---
 
-**Autor:** Student 3 roku
+**Autor:** Nikita Parkovskyi
 

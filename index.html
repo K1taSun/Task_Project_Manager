@@ -752,6 +752,7 @@
       word-break: break-word;
       max-height: 4.2em;
       overflow: hidden;
+      line-clamp: 3;
       display: -webkit-box;
       -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
@@ -768,6 +769,7 @@
     }
     .task-card .description.expanded {
       max-height: none;
+      line-clamp: unset;
       -webkit-line-clamp: unset;
     }
     [data-theme="dark"] .task-card .description {
