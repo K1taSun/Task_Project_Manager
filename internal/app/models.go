@@ -75,40 +75,6 @@ func projectExistsByID(id int) bool {
 	return exists
 }
 
-func taskExistsByID(id int) bool {
-	mutex.RLock()
-	defer mutex.RUnlock()
-	_, exists := tasks[id]
-	return exists
-}
-
-func getProjectsCount() int {
-	mutex.RLock()
-	defer mutex.RUnlock()
-	return len(projects)
-}
-
-func getTasksCount() int {
-	mutex.RLock()
-	defer mutex.RUnlock()
-	return len(tasks)
-}
-
-func resetIDCounters() {
-	mutex.Lock()
-	defer mutex.Unlock()
-	nextProjectID = 1
-	nextTaskID = 1
-}
-
-func hasProjects() bool {
-	return getProjectsCount() > 0
-}
-
-func hasTasks() bool {
-	return getTasksCount() > 0
-}
-
 func createDefaultProjectBadge() *Badge {
 	return &Badge{
 		Text:       "Nowy",
@@ -132,12 +98,4 @@ func createPriorityBadge(priority int) *Badge {
 		return badge
 	}
 	return &Badge{Text: "Nieznany", Color: "#ffffff", Background: "#6b7280", Icon: "help", Type: "priority"}
-}
-
-func updateProjectTimestamp(p *Project) {
-	p.UpdatedAt = time.Now()
-}
-
-func updateTaskTimestamp(t *Task) {
-	t.UpdatedAt = time.Now()
 }

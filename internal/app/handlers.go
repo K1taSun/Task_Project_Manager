@@ -515,7 +515,7 @@ func exportHandler(w http.ResponseWriter, r *http.Request) {
 	exportJSON(w, r)
 }
 
-func exportJSON(w http.ResponseWriter, r *http.Request) {
+func exportJSON(w http.ResponseWriter, _ *http.Request) {
 	mutex.RLock()
 	data := struct {
 		Projects []Project `json:"projects"`
@@ -533,7 +533,7 @@ func exportJSON(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(data)
 }
 
-func exportCSV(w http.ResponseWriter, r *http.Request) {
+func exportCSV(w http.ResponseWriter, _ *http.Request) {
 	mutex.RLock()
 	w.Header().Set("Content-Type", "text/csv")
 	w.Header().Set("Content-Disposition", "attachment;filename=export.csv")

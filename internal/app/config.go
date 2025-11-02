@@ -89,10 +89,10 @@ func PrintConfig(cfg *Config) {
 // ValidateConfig sprawdza poprawność konfiguracji.
 func ValidateConfig(cfg *Config) error {
 	if cfg.Port == "" {
-		return fmt.Errorf("Port cannot be empty")
+		return fmt.Errorf("port cannot be empty")
 	}
 	if cfg.Host == "" {
-		return fmt.Errorf("Host cannot be empty")
+		return fmt.Errorf("host cannot be empty")
 	}
 	return nil
 }

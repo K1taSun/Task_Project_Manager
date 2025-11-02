@@ -12,15 +12,6 @@ func joinTags(tags []string) string {
 	return strings.Join(tags, ",")
 }
 
-func isEmptyString(s string) bool {
-	return s == ""
-}
-
-func checkStringLength(s string, min, max int) bool {
-	length := len(s)
-	return length >= min && length <= max
-}
-
 func writeJSONError(w http.ResponseWriter, status int, msg string) {
 	log.Printf("HTTP Error %d: %s", status, msg)
 	w.Header().Set("Content-Type", "application/json")
@@ -41,13 +32,6 @@ func logMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		next(w, r)
 		log.Printf("%s %s - %v", r.Method, r.URL.Path, time.Since(start))
 	}
-}
-
-func projectExists(id int) bool {
-	mutex.RLock()
-	defer mutex.RUnlock()
-	_, exists := projects[id]
-	return exists
 }
 
 // funkcja do powiadamiania o zmianach - deklaracja w handlers.go
