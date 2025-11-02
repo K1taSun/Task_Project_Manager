@@ -63,6 +63,11 @@
       position: sticky;
       top: 0; z-index: 10;
     }
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
     .navbar .logo {
       font-weight: 700;
       font-size: 1.3em;
@@ -74,6 +79,29 @@
     .navbar .logo .material-icons {
       font-size: 1.4em;
       color: var(--primary);
+    }
+    .overview-btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.28);
+      transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+      cursor: pointer;
+      padding: 0;
+    }
+    .overview-btn .material-icons {
+      font-size: 1.5em;
+    }
+    .overview-btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.32);
     }
     .navbar .actions {
       display: flex;
@@ -105,6 +133,400 @@
       display: flex;
       min-height: calc(100vh - 64px);
       transition: all var(--transition);
+    }
+    .project-tasks-panel {
+      margin-top: 16px;
+      background: var(--card);
+      border-radius: 16px;
+      border: 1.5px solid var(--border);
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .project-tasks-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+      font-size: 1.05em;
+      color: var(--text);
+    }
+    .project-tasks-header span {
+      font-size: 0.85em;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+    .project-task-entry {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: var(--bg);
+      border: 1px solid transparent;
+      transition: border var(--transition), background var(--transition), transform var(--transition);
+    }
+    .project-task-entry:hover {
+      border-color: rgba(37, 99, 235, 0.25);
+      background: rgba(59, 130, 246, 0.08);
+      transform: translateX(4px);
+    }
+    .project-task-entry.done {
+      opacity: 0.7;
+    }
+    .project-task-main {
+      flex: 1;
+      min-width: 0;
+    }
+    .project-task-title {
+      font-weight: 600;
+      font-size: 1em;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .project-task-title .material-icons {
+      font-size: 1.1em;
+      color: var(--primary);
+    }
+    .project-task-entry.done .project-task-title .material-icons {
+      color: #10b981;
+    }
+    .project-task-desc {
+      font-size: 0.9em;
+      color: #64748b;
+      margin: 0;
+    }
+    .project-task-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+      font-size: 0.83em;
+      color: #94a3b8;
+    }
+    .project-task-meta .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.18);
+    }
+    .project-task-meta .chip .material-icons {
+      font-size: 1.05em;
+    }
+    .project-task-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .project-task-actions button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--primary);
+      padding: 4px;
+      border-radius: 8px;
+      transition: background var(--transition), color var(--transition);
+    }
+    .project-task-actions button:hover {
+      background: rgba(37, 99, 235, 0.15);
+    }
+    .project-task-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 40px 12px;
+      color: #94a3b8;
+      font-style: italic;
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+    }
+    .project-task-empty .material-icons {
+      font-size: 2.6em;
+      opacity: 0.4;
+    }
+    .overview-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+      overflow-y: auto;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 100;
+    }
+    .overview-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .overview-content {
+      width: min(940px, 96vw);
+      background: var(--card);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+      border: 1px solid var(--border);
+      padding: 26px 28px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      max-height: 86vh;
+    }
+    .overview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .overview-header h2 {
+      margin: 0;
+      font-size: 1.4em;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .overview-close {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 1.6em;
+      cursor: pointer;
+      border-radius: 12px;
+      padding: 4px 6px;
+      transition: background var(--transition);
+    }
+    .overview-close:hover {
+      background: rgba(148, 163, 184, 0.2);
+    }
+    .overview-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .overview-controls input {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.95em;
+      transition: border var(--transition), box-shadow var(--transition);
+    }
+    .overview-controls input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+    .overview-body {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 20px;
+      flex: 1;
+      min-height: 0;
+    }
+    .overview-column {
+      background: var(--bg);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 0;
+    }
+    .overview-column h3 {
+      margin: 0;
+      font-size: 1.05em;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .overview-column h3 span {
+      font-size: 0.75em;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+    .overview-projects {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+    }
+    .overview-projects li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--card);
+      border-radius: 12px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: transform var(--transition), background var(--transition), border var(--transition);
+    }
+    .overview-projects li:hover {
+      transform: translateX(4px);
+      background: rgba(37, 99, 235, 0.12);
+      border-color: rgba(37, 99, 235, 0.2);
+    }
+    .overview-projects .count-tag {
+      min-width: 28px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.16);
+      color: var(--primary-dark);
+      font-size: 0.75em;
+      font-weight: 600;
+      text-align: center;
+    }
+    .overview-scroll {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-right: 4px;
+    }
+    .overview-task {
+      background: var(--card);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border var(--transition), transform var(--transition), box-shadow var(--transition);
+      cursor: pointer;
+    }
+    .overview-task:hover {
+      border-color: rgba(37, 99, 235, 0.35);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+    }
+    .overview-task.done {
+      opacity: 0.7;
+    }
+    .overview-task-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .overview-task-title {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .overview-task-title .material-icons {
+      font-size: 1.4em;
+      color: var(--primary);
+    }
+    .overview-task.done .overview-task-title .material-icons {
+      color: #10b981;
+    }
+    .overview-task-title .headline {
+      font-weight: 600;
+      font-size: 1em;
+    }
+    .overview-task-title .subline {
+      font-size: 0.85em;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+    .overview-task-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: #64748b;
+      font-size: 0.85em;
+    }
+    .overview-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.16);
+    }
+    .overview-chip .material-icons {
+      font-size: 1.1em;
+    }
+    .overview-task-desc {
+      margin: 0;
+      font-size: 0.9em;
+      color: #64748b;
+      line-height: 1.4;
+      max-height: 72px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .overview-empty {
+      padding: 36px 12px;
+      text-align: center;
+      color: #94a3b8;
+      font-style: italic;
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+    }
+    .overview-quick-button {
+      background: none;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      border-radius: 8px;
+      padding: 4px 6px;
+      transition: background var(--transition);
+    }
+    .overview-quick-button:hover {
+      background: rgba(37, 99, 235, 0.15);
+    }
+    @media (max-width: 900px) {
+      .overview-content {
+        padding: 22px 22px 24px;
+        width: min(720px, 95vw);
+      }
+      .overview-body {
+        grid-template-columns: 1fr;
+      }
+      .overview-column {
+        max-height: 40vh;
+      }
+      .overview-scroll {
+        max-height: 42vh;
+      }
+    }
+    @media (max-width: 600px) {
+      .overview-content {
+        padding: 18px;
+        border-radius: 18px;
+      }
+      .overview-header h2 {
+        font-size: 1.2em;
+      }
+      .overview-controls input {
+        font-size: 0.85em;
+      }
+      .overview-column {
+        padding: 14px;
+      }
     }
     .sidebar {
       width: 270px;
@@ -563,6 +985,8 @@
     }
     @media (max-width: 768px) {
       .navbar { padding: 0 16px; }
+      .nav-left { gap: 12px; }
+      .overview-btn { width: 40px; height: 40px; border-radius: 12px; }
       .navbar .logo { font-size: 1.2em; }
       .main { padding: 12px 4vw 12px 4vw; }
       .filters {
@@ -591,6 +1015,8 @@
     }
     @media (max-width: 600px) {
       .navbar { padding: 0 12px; }
+      .nav-left { gap: 10px; }
+      .overview-btn { width: 38px; height: 38px; }
       .navbar .logo { font-size: 1.1em; }
       .main { padding: 8px 3vw 8px 3vw; }
       .sidebar-header, .add-project-btn { margin: 0 12px; }
@@ -616,6 +1042,9 @@
     }
     @media (max-width: 480px) {
       .navbar { padding: 0 8px; }
+      .nav-left { gap: 8px; }
+      .overview-btn { width: 34px; height: 34px; border-radius: 10px; }
+      .overview-btn .material-icons { font-size: 1.3em; }
       .navbar .logo { font-size: 1em; }
       .navbar .logo .material-icons {
         font-size: 1.2em;
@@ -694,9 +1123,13 @@
   <!-- Main Application -->
   <div id="app" class="app">
   <nav class="navbar">
-    <div class="logo"><span class="material-icons">dashboard_customize</span> Menadżer zadań</div>
+    <div class="nav-left">
+      <button class="overview-btn" onclick="openOverview()" title="Szybki podgląd">
+        <span class="material-icons">menu</span>
+      </button>
+      <div class="logo"><span class="material-icons">dashboard_customize</span> Menadżer zadań</div>
+    </div>
     <div class="actions">
-      <button onclick="showStats()" title="Statystyki"><span class="material-icons">analytics</span></button>
       <button onclick="exportData('json')" title="Eksportuj JSON"><span class="material-icons">download</span></button>
       <button onclick="exportData('csv')" title="Eksportuj CSV"><span class="material-icons">table_view</span></button>
       <button class="theme-btn" onclick="toggleTheme()" title="Zmień motyw"><span class="material-icons">dark_mode</span></button>
@@ -824,21 +1257,74 @@
         details.innerHTML = '';
         return;
       }
-      const count = tasks.filter(t => t.project_id === project.id).length;
+      const projectTasks = tasks.filter(t => t.project_id === project.id);
+      const count = projectTasks.length;
+
+      const tasksMarkup = projectTasks.length
+        ? projectTasks.sort((a, b) => {
+            if (a.done !== b.done) return a.done ? 1 : -1;
+            if (a.deadline && b.deadline) {
+              return new Date(a.deadline) - new Date(b.deadline);
+            }
+            if (a.deadline) return -1;
+            if (b.deadline) return 1;
+            return a.title.localeCompare(b.title);
+          }).map(task => {
+            const deadlineChip = task.deadline ? `<span class="chip"><span class="material-icons">event</span>${task.deadline.substring(0,10)}</span>` : '';
+            const priorityChip = `<span class="chip"><span class="material-icons">flag</span>${task.priority || 0}</span>`;
+            const tagsChip = (task.tags || []).length ? `<span class="chip"><span class="material-icons">label</span>${task.tags.join(', ')}</span>` : '';
+            const badgeHtml = task.badge ? `<div>${renderBadge(task.badge)}</div>` : '';
+            return `
+              <div class="project-task-entry${task.done ? ' done' : ''}">
+                <div class="project-task-main">
+                  <div class="project-task-title">
+                    <span class="material-icons">${task.done ? 'check_circle' : 'radio_button_unchecked'}</span>
+                    <span>${task.title}</span>
+                  </div>
+                  ${task.description ? `<p class="project-task-desc">${task.description}</p>` : ''}
+                  <div class="project-task-meta">
+                    ${deadlineChip}
+                    ${priorityChip}
+                    ${tagsChip}
+                  </div>
+                  ${badgeHtml}
+                </div>
+                <div class="project-task-actions">
+                  <button onclick="toggleDone(${task.id})" title="${task.done ? 'Oznacz jako niewykonane' : 'Oznacz jako wykonane'}"><span class="material-icons">${task.done ? 'restart_alt' : 'check'}</span></button>
+                  <button onclick="showTaskModal(tasks.find(t=>t.id===${task.id}))" title="Edytuj zadanie"><span class="material-icons">edit</span></button>
+                </div>
+              </div>
+            `;
+          }).join('')
+        : `
+          <div class="project-task-empty">
+            <span class="material-icons">checklist</span>
+            <div>Brak zadań w tym projekcie</div>
+            <button class="overview-quick-button" onclick="showTaskModal(null, ${project.id})">Dodaj pierwsze zadanie</button>
+          </div>
+        `;
+
       details.innerHTML = `
-        <div style="background:var(--card);border-radius:16px;padding:18px 22px;margin-bottom:18px;box-shadow:var(--shadow);border:1.5px solid var(--border);display:flex;align-items:center;gap:18px;">
+        <div style="background:var(--card);border-radius:16px;padding:18px 22px;margin-bottom:18px;box-shadow:var(--shadow);border:1.5px solid var(--border);display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
           <span class="material-icons" style="font-size:2em;color:var(--primary);">folder</span>
-          <div style="flex:1;">
+          <div style="flex:1;min-width:220px;">
             <div style="font-size:1.18em;font-weight:600;">${project.name}</div>
             <div style="color:#888;font-size:0.98em;">Zadań: ${count}</div>
             ${project.description ? `<div style="color:#666;font-size:0.9em;margin-top:4px;">${project.description}</div>` : ''}
             ${project.badge ? `<div style="margin-top:8px;">${renderBadge(project.badge)}</div>` : ''}
           </div>
-          <div style="display:flex;gap:8px;">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button title='Dodaj zadanie do projektu' onclick='showTaskModal(null, ${project.id})' style='background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;'><span class="material-icons">add_task</span></button>
             <button title='Edytuj projekt' onclick='showProjectModal(projects.find(p=>p.id===${project.id}))' style='background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;'><span class="material-icons">edit</span></button>
             <button title='Usuń projekt' onclick='deleteProject(${project.id})' style='background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;'><span class="material-icons">delete</span></button>
           </div>
+        </div>
+        <div class="project-tasks-panel">
+          <div class="project-tasks-header">
+            <span>Lista zadań</span>
+            <span>${count}</span>
+          </div>
+          ${tasksMarkup}
         </div>
       `;
     }
@@ -872,9 +1358,14 @@
 
     // Zadania
     async function fetchTasks() {
-      const res = await fetch(`${API}/tasks`);
-      tasks = await res.json();
-      renderTasks();
+      try {
+        const res = await safeFetch(`${API}/tasks`);
+        tasks = await res.json();
+        renderTasks();
+        renderProjects();
+      } catch (error) {
+        console.error("Failed to fetch tasks:", error);
+      }
     }
     function renderTasks() {
       renderProjectDetails();
@@ -967,27 +1458,31 @@
     async function saveTask() {
       const title = document.getElementById('taskTitle').value.trim();
       const description = document.getElementById('taskDescription').value.trim();
-      const projectId = document.getElementById('taskProject').value ? parseInt(document.getElementById('taskProject').value) : null;
+      const projectSelectValue = document.getElementById('taskProject').value;
+      const selectedProjectId = projectSelectValue ? parseInt(projectSelectValue) : null;
       const tags = document.getElementById('taskTags').value.split(',').map(x=>x.trim()).filter(Boolean);
       const priority = parseInt(document.getElementById('taskPriority').value) || 0;
       const deadline = document.getElementById('taskDeadline').value;
       if (!title) return alert('Tytuł zadania jest wymagany!');
-      let payload = {
+
+      const payload = {
         title,
         description,
         tags,
         priority,
         deadline: deadline ? new Date(deadline).toISOString() : null,
-        done: editingTask ? editingTask.done : false,
-        project_id: editingTask ? editingTask.project_id : projectId
+        done: editingTask ? !!editingTask.done : false,
+        project_id: selectedProjectId
       };
+
       try {
         let res;
         if (editingTask) {
+          const requestBody = { ...editingTask, ...payload, project_id: selectedProjectId };
           res = await safeFetch(`${API}/tasks/${editingTask.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...editingTask, ...payload })
+            body: JSON.stringify(requestBody)
           });
         } else {
           res = await safeFetch(`${API}/tasks`, {
@@ -995,14 +1490,16 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
-          // Automatycznie wybierz projekt dla nowego zadania
           const newTask = await res.json();
-          if (newTask.project_id && !selectedProject) {
-            selectedProject = newTask.project_id;
-          } else if (newTask.project_id) {
+          if (typeof newTask.project_id === 'number' && newTask.project_id > 0) {
             selectedProject = newTask.project_id;
           }
         }
+
+        if (typeof selectedProjectId === 'number') {
+          selectedProject = selectedProjectId;
+        }
+
         closeModal();
         await fetchTasks();
       } catch (error) {
@@ -1166,75 +1663,177 @@
     // Helper function to render badges
     function renderBadge(badge) {
       if (!badge) return '';
-      return `<span class="badge ${badge.type}-${badge.text.toLowerCase().replace(/\s+/g, '-')}" style="background: ${badge.background}; color: ${badge.color};">
+      return `<span class="badge ${badge.type}-${badge.text.toLowerCase().replace(/\s+/g, '-')}">
         ${badge.icon ? `<span class="material-icons badge-icon">${badge.icon}</span>` : ''}
         ${badge.text}
       </span>`;
     }
-    
-    // Show statistics modal
-    async function showStats() {
-      try {
-        const response = await fetch(`${API}/stats`);
-        const stats = await response.json();
-        
-        const modal = document.createElement('div');
-        modal.className = 'modal';
-        modal.innerHTML = `
-          <div class="modal-content" style="max-width: 600px;">
-            <div class="modal-header">
-              <h2>Statystyki aplikacji</h2>
-              <button onclick="closeModal()" class="close-btn">&times;</button>
+
+    function getProjectNameById(id) {
+      if (!id) return 'Bez projektu';
+      const project = projects.find(p => p.id === id);
+      return project ? project.name : 'Bez projektu';
+    }
+
+    async function openOverview() {
+      if (!projects.length) {
+        await fetchProjects();
+      }
+      if (!tasks.length) {
+        await fetchTasks();
+      }
+      if (document.getElementById('overviewOverlay')) {
+        return;
+      }
+
+      const modalRoot = document.getElementById('modalRoot');
+      const overlay = document.createElement('div');
+      overlay.id = 'overviewOverlay';
+      overlay.className = 'overview-overlay';
+
+      const projectsMarkup = projects.length
+        ? [...projects].sort((a, b) => a.name.localeCompare(b.name)).map(project => {
+            const count = tasks.filter(t => t.project_id === project.id).length;
+            return `<li onclick="focusProjectFromOverview(${project.id})">
+              <span>${project.name}</span>
+              <span class="count-tag">${count}</span>
+            </li>`;
+          }).join('')
+        : '<li class="overview-empty" style="list-style:none;">Brak projektów</li>';
+
+      overlay.innerHTML = `
+        <div class="overview-content" role="dialog" aria-modal="true">
+          <div class="overview-header">
+            <h2><span class="material-icons">dashboard_customize</span> Szybki podgląd</h2>
+            <button class="overview-close" aria-label="Zamknij" onclick="closeOverview()">&times;</button>
+          </div>
+          <div class="overview-controls">
+            <input id="overviewSearch" type="search" placeholder="Szukaj w projektach i zadaniach..." autocomplete="off">
+            <button class="overview-quick-button" title="Pokaż wszystkie zadania" onclick="focusProjectFromOverview(null);">
+              <span class="material-icons">view_comfy</span>
+            </button>
+            <button class="overview-quick-button" title="Dodaj zadanie" onclick="closeOverview(); showTaskModal();">
+              <span class="material-icons">add_task</span>
+            </button>
+          </div>
+          <div class="overview-body">
+            <div class="overview-column">
+              <h3>Projekty <span>${projects.length}</span></h3>
+              <ul class="overview-projects">${projectsMarkup}</ul>
             </div>
-            <div class="modal-body">
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-bottom: 30px;">
-                <div style="text-align: center; padding: 20px; background: var(--card); border-radius: 12px; border: 1px solid var(--border);">
-                  <div style="font-size: 2rem; font-weight: bold; color: var(--primary);">${stats.projects.total}</div>
-                  <div style="color: var(--text);">Projektów</div>
-                </div>
-                <div style="text-align: center; padding: 20px; background: var(--card); border-radius: 12px; border: 1px solid var(--border);">
-                  <div style="font-size: 2rem; font-weight: bold; color: var(--primary);">${stats.tasks.total}</div>
-                  <div style="color: var(--text);">Zadań</div>
-                </div>
-                <div style="text-align: center; padding: 20px; background: var(--card); border-radius: 12px; border: 1px solid var(--border);">
-                  <div style="font-size: 2rem; font-weight: bold; color: #10b981;">${stats.tasks.completed}</div>
-                  <div style="color: var(--text);">Ukończone</div>
-                </div>
-                <div style="text-align: center; padding: 20px; background: var(--card); border-radius: 12px; border: 1px solid var(--border);">
-                  <div style="font-size: 2rem; font-weight: bold; color: #f59e0b;">${stats.tasks.pending}</div>
-                  <div style="color: var(--text);">Oczekujące</div>
-                </div>
-              </div>
-              
-              <div style="margin-bottom: 20px;">
-                <h3>Zadania według priorytetu</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;">
-                  ${Object.entries(stats.tasks.by_priority).map(([priority, count]) => `
-                    <div style="text-align: center; padding: 15px; background: var(--card); border-radius: 8px; border: 1px solid var(--border);">
-                      <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary);">${count}</div>
-                      <div style="color: var(--text); font-size: 0.9rem;">Priorytet ${priority}</div>
-                    </div>
-                  `).join('')}
-                </div>
-              </div>
-              
-              <div style="margin-bottom: 20px;">
-                <h3>Informacje systemowe</h3>
-                <div style="background: var(--card); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
-                  <div style="margin-bottom: 10px;"><strong>Wersja:</strong> ${stats.system.version}</div>
-                  <div><strong>Czas działania:</strong> ${stats.system.uptime}</div>
-                </div>
-              </div>
+            <div class="overview-column">
+              <h3>Zadania <span>${tasks.length}</span></h3>
+              <div class="overview-scroll" id="overviewTasksList"></div>
             </div>
           </div>
-        `;
-        
-        document.getElementById('modalRoot').appendChild(modal);
-        modal.style.display = 'flex';
-      } catch (error) {
-        console.error('Failed to fetch stats:', error);
-        alert('Błąd podczas pobierania statystyk');
+        </div>
+      `;
+
+      overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) {
+          closeOverview();
+        }
+      });
+
+      modalRoot.appendChild(overlay);
+      requestAnimationFrame(() => overlay.classList.add('open'));
+
+      const searchInput = document.getElementById('overviewSearch');
+      if (searchInput) {
+        searchInput.addEventListener('input', handleOverviewSearch);
+        searchInput.focus({ preventScroll: true });
       }
+
+      renderOverviewTasks();
+    }
+
+    function closeOverview() {
+      const overlay = document.getElementById('overviewOverlay');
+      if (!overlay) return;
+      overlay.classList.remove('open');
+      setTimeout(() => overlay.remove(), 180);
+    }
+
+    function handleOverviewSearch(event) {
+      renderOverviewTasks(event.target.value);
+    }
+
+    function renderOverviewTasks(query) {
+      const container = document.getElementById('overviewTasksList');
+      if (!container) return;
+
+      const searchValue = typeof query === 'string'
+        ? query.trim().toLowerCase()
+        : (document.getElementById('overviewSearch')?.value.trim().toLowerCase() || '');
+
+      let filtered = [...tasks];
+      if (searchValue) {
+        filtered = filtered.filter(task => {
+          const projectName = getProjectNameById(task.project_id).toLowerCase();
+          const description = (task.description || '').toLowerCase();
+          const tagsValue = (task.tags || []).join(' ').toLowerCase();
+          return task.title.toLowerCase().includes(searchValue)
+            || description.includes(searchValue)
+            || projectName.includes(searchValue)
+            || tagsValue.includes(searchValue);
+        });
+      }
+
+      filtered.sort((a, b) => {
+        const projectCompare = getProjectNameById(a.project_id).localeCompare(getProjectNameById(b.project_id));
+        if (projectCompare !== 0) return projectCompare;
+        if (a.done !== b.done) return a.done ? 1 : -1;
+        return a.title.localeCompare(b.title);
+      });
+
+      if (!filtered.length) {
+        container.innerHTML = '<div class="overview-empty">Brak wyników spełniających kryteria</div>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(task => {
+        const projectName = getProjectNameById(task.project_id);
+        const deadlineChip = task.deadline ? `<span class="overview-chip"><span class="material-icons">event</span>${task.deadline.substring(0,10)}</span>` : '';
+        const priorityValue = typeof task.priority === 'number' ? task.priority : 0;
+        const priorityChip = `<span class="overview-chip"><span class="material-icons">flag</span>${priorityValue}</span>`;
+        const tagsChip = (task.tags || []).length ? `<span class="overview-chip"><span class="material-icons">label</span>${task.tags.join(', ')}</span>` : '';
+        const badgeHtml = task.badge ? `<div>${renderBadge(task.badge)}</div>` : '';
+
+        return `
+          <div class="overview-task${task.done ? ' done' : ''}" onclick="openTaskFromOverview(${task.id})">
+            <div class="overview-task-header">
+              <div class="overview-task-title">
+                <span class="material-icons">${task.done ? 'check_circle' : 'radio_button_unchecked'}</span>
+                <div>
+                  <div class="headline">${task.title}</div>
+                  <div class="subline">${projectName}</div>
+                </div>
+              </div>
+              ${badgeHtml}
+            </div>
+            <div class="overview-task-meta">
+              ${deadlineChip}
+              ${priorityChip}
+              ${tagsChip}
+            </div>
+            ${task.description ? `<p class="overview-task-desc">${task.description}</p>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function focusProjectFromOverview(id) {
+      closeOverview();
+      selectedProject = id || null;
+      renderProjects();
+      renderTasks();
+    }
+
+    function openTaskFromOverview(id) {
+      const task = tasks.find(t => t.id === id);
+      if (!task) return;
+      closeOverview();
+      showTaskModal(task);
     }
     
     // Inicjalizacja
@@ -1294,6 +1893,7 @@
         const res = await safeFetch(`${API}/tasks`);
         tasks = await res.json();
         renderTasks();
+        renderProjects();
       } catch (error) {
         console.error("Failed to fetch tasks:", error);
       }
@@ -1312,6 +1912,12 @@
     
     connectWebSocket();
     Promise.all([fetchProjects(), fetchTasks()]);
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        closeOverview();
+      }
+    });
     
     // Trigger fade-in animation for immediate display
     document.addEventListener('DOMContentLoaded', function() {

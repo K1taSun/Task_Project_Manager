@@ -1,0 +1,9 @@
+.DS_Store
+.idea/
+*.log
+bin/
+task-manager
+Projekt_go
+data_projects.json
+data_tasks.json
+
