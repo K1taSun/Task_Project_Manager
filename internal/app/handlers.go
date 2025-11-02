@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -308,6 +309,17 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if base.ProjectID != 0 {
+			if err := validateID(base.ProjectID); err != nil {
+				writeJSONError(w, http.StatusBadRequest, err.Error())
+				return
+			}
+			if !projectExistsByID(base.ProjectID) {
+				writeJSONError(w, http.StatusBadRequest, "Project does not exist")
+				return
+			}
+		}
+
 		base.ID = generateTaskID()
 		mutex.Lock()
 		tasks[base.ID] = base
@@ -598,14 +610,19 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
+	wsMutex.Lock()
 	wsConnections = append(wsConnections, conn)
+	wsMutex.Unlock()
+
 	defer func() {
+		wsMutex.Lock()
 		for i, c := range wsConnections {
 			if c == conn {
 				wsConnections = append(wsConnections[:i], wsConnections[i+1:]...)
 				break
 			}
 		}
+		wsMutex.Unlock()
 	}()
 
 	for {
@@ -624,6 +641,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 var (
 	wsConnections []*websocket.Conn
+	wsMutex       sync.Mutex
 )
 
 type taskPayload struct {
@@ -672,7 +690,12 @@ func applyTaskPayload(base Task, payload taskPayload) Task {
 }
 
 func broadcastChange() {
-	if len(wsConnections) == 0 {
+	wsMutex.Lock()
+	connections := make([]*websocket.Conn, len(wsConnections))
+	copy(connections, wsConnections)
+	wsMutex.Unlock()
+
+	if len(connections) == 0 {
 		return
 	}
 
@@ -687,7 +710,7 @@ func broadcastChange() {
 		return
 	}
 
-	for _, conn := range wsConnections {
+	for _, conn := range connections {
 		if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
 			log.Printf("Error sending WebSocket message: %v", err)
 		}
