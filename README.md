@@ -15,6 +15,7 @@
 - **Walidacja** danych wejściowych po stronie backendu
 - **WebSocket** – push powiadomień o zmianach do otwartych kart
 - **Motyw jasny/ciemny** oraz responsywny interfejs przygotowany na urządzenia mobilne
+- **Zaawansowane metryki** – dashboard z podsumowaniami, wykresami priorytetów, przepływu pracy i obciążenia wykonawców
 
 ---
 
@@ -51,8 +52,8 @@
 │       ├── utils.go       # narzędzia, logger, odpowiedzi JSON
 │       └── validation.go  # walidacja wpisów
 ├── index.html             # jedyny plik frontendu
-├── data_projects.json     # plik z projektami
-├── data_tasks.json        # plik z zadaniami
+├── data_projects.json     # bieżące dane projektów (generowane przy starcie)
+├── data_tasks.json        # bieżące dane zadań (generowane przy starcie)
 ├── go.mod / go.sum        # moduł Go
 └── README.md
 ```
@@ -92,6 +93,23 @@
    ```
    Domyślnie backend nasłuchuje na `localhost:8080`. Zmienne środowiskowe (`HOST`, `PORT`, `PROJECTS_FILE`, `TASKS_FILE`) pozwalają nadpisać konfigurację.
 4. **Frontend:** otwórz w przeglądarce `http://localhost:8080`.
+5. **Dashboard metryk:** kliknij ikonę wykresu w górnym pasku, aby zobaczyć podsumowania i wykresy (Chart.js jest ładowany z CDN).
+
+> Pliki `data_projects.json` oraz `data_tasks.json` są wykluczone z repozytorium (zapisują bieżący stan). Jeśli zaczynasz od pustej instalacji, aplikacja sama utworzy te pliki przy pierwszym uruchomieniu.
+
+---
+
+## Dashboard metryk
+
+Panel dostępny z poziomu górnego paska (`ikona analytics`) prezentuje:
+
+- **Podsumowanie** – stopień ukończenia, zaległe terminy, średni priorytet, liczbę ukończonych zadań w ostatnich 7 dniach.
+- **Dystrybucję priorytetów** – wykres kołowy w oparciu o bieżące dane.
+- **Tempo pracy (14 dni)** – wykres liniowy pokazujący utworzone i ukończone zadania.
+- **Obciążenie wykonawców** – porównanie otwartych i zamkniętych zadań per osoby.
+- **Najczęstsze tagi** – szybki podgląd dominujących etykiet w projektach.
+
+Dane są odświeżane automatycznie przy zmianach (REST + WebSocket). Tryb ciemny/jasny aktualizuje styl wykresów bez przeładowania.
 
 ---
 
@@ -149,7 +167,7 @@ Pliki `data_projects.json` i `data_tasks.json` są generowane automatycznie przy
 
 - [ ] Integracja z relacyjną bazą danych (PostgreSQL/SQLite)
 - [ ] Autoryzacja użytkowników i role
-- [ ] Zaawansowane metryki oraz dashboard
+- [x] Zaawansowane metryki oraz dashboard
 - [ ] Powiadomienia e-mail / webhooki
 - [ ] Testy jednostkowe i automatyczna walidacja linterem/go vet
 

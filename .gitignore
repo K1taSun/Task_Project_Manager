@@ -3,7 +3,10 @@
 *.log
 bin/
 task-manager
-Projekt_go
+cmd/task-manager/task-manager
+cmd/task-manager/task-manager.exe
+tmp/
+*.local
+*.env
 data_projects.json
 data_tasks.json
-
