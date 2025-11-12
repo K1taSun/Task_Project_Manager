@@ -1,4 +1,4 @@
-module Projekt_go
+module github.com/_k1tasun_/Task_Project_Manager
 
 go 1.21
 

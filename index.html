@@ -24,7 +24,212 @@
     }
     
 
-
+    .metrics-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    .metric-card {
+      background: var(--card);
+      border-radius: 16px;
+      border: 1.5px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: box-shadow var(--transition), border var(--transition);
+    }
+    .metric-card:hover {
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+      border-color: rgba(37, 99, 235, 0.32);
+    }
+    .metric-card .metric-label {
+      font-size: 0.85em;
+      letter-spacing: 0.03em;
+      color: #94a3b8;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .metric-card .metric-value {
+      font-size: 1.9em;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .metric-card .metric-sub {
+      font-size: 0.9em;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .metric-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(37, 99, 235, 0.12);
+      color: var(--primary-dark);
+    }
+    .metric-card.danger .metric-value {
+      color: #dc2626;
+    }
+    .metric-card.warning .metric-value {
+      color: #d97706;
+    }
+    .metric-card.success .metric-value {
+      color: #16a34a;
+    }
+    .dashboard-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+      overflow-y: auto;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 200;
+    }
+    .dashboard-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .dashboard-content {
+      width: min(960px, 92vw);
+      background: var(--card);
+      border-radius: 22px;
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+      border: 1px solid var(--border);
+      padding: 28px 28px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      max-height: 88vh;
+      overflow-y: auto;
+    }
+    .dashboard-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .dashboard-header h2 {
+      margin: 0;
+      font-size: 1.5em;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .dashboard-close {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 1.5em;
+      cursor: pointer;
+      border-radius: 10px;
+      padding: 6px 10px;
+      transition: background var(--transition);
+    }
+    .dashboard-close:hover {
+      background: rgba(148, 163, 184, 0.2);
+    }
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+    }
+    .dashboard-section {
+      background: var(--bg);
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 0;
+    }
+    .dashboard-section h3 {
+      margin: 0;
+      font-size: 1.1em;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .dashboard-section h3 span.material-icons {
+      font-size: 1.3em;
+      color: var(--primary);
+    }
+    .dashboard-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9em;
+    }
+    .dashboard-table thead {
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      font-size: 0.75em;
+      color: #94a3b8;
+    }
+    .dashboard-table th,
+    .dashboard-table td {
+      text-align: left;
+      padding: 10px 6px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    .dashboard-table tbody tr:hover {
+      background: rgba(37, 99, 235, 0.08);
+    }
+    .dashboard-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .dashboard-tags .metric-chip {
+      background: rgba(15, 118, 110, 0.12);
+      color: #0f766e;
+    }
+    .health-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.75em;
+      font-weight: 600;
+    }
+    .health-chip.on_track {
+      background: rgba(22, 163, 74, 0.15);
+      color: #15803d;
+    }
+    .health-chip.needs_attention {
+      background: rgba(234, 179, 8, 0.2);
+      color: #b45309;
+    }
+    .health-chip.at_risk,
+    .health-chip.behind {
+      background: rgba(220, 38, 38, 0.18);
+      color: #b91c1c;
+    }
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 280px;
+    }
     
     .app {
       opacity: 0;
@@ -984,6 +1189,12 @@
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 12px;
       }
+      .metrics-summary {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
     }
     @media (max-width: 768px) {
       .navbar { padding: 0 16px; }
@@ -1013,6 +1224,9 @@
         width: 56px;
         height: 56px;
         font-size: 2em;
+      }
+      .metrics-summary {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       }
     }
     @media (max-width: 600px) {
@@ -1076,6 +1290,12 @@
         height: 52px;
         font-size: 1.8em;
       }
+      .metrics-summary {
+        grid-template-columns: 1fr;
+      }
+      .dashboard-content {
+        padding: 20px 18px 24px;
+      }
     }
     @media (max-width: 400px) {
       .modal { 
@@ -1120,6 +1340,7 @@
       }
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <!-- Main Application -->
@@ -1134,6 +1355,7 @@
     <div class="actions">
       <button onclick="exportData('json')" title="Eksportuj JSON"><span class="material-icons">download</span></button>
       <button onclick="exportData('csv')" title="Eksportuj CSV"><span class="material-icons">table_view</span></button>
+      <button onclick="openDashboard()" title="Dashboard metryk"><span class="material-icons">analytics</span></button>
       <button class="theme-btn" onclick="toggleTheme()" title="Zmień motyw"><span class="material-icons">dark_mode</span></button>
     </div>
   </nav>
@@ -1147,6 +1369,7 @@
       <button class="add-project-btn" onclick="showProjectModal()">+ Nowy projekt</button>
     </aside>
     <main class="main">
+      <div id="metricsSummary" class="metrics-summary"></div>
       <div id="projectDetails"></div>
       <div class="filters">
         <label for="filterSearch" style="display:none">Szukaj</label>
@@ -1181,12 +1404,419 @@
     let editingProject = null;
     let editingTask = null;
     let compactView = false; // Nowa zmienna do śledzenia widoku
+    let metricsData = null;
+    let metricsPromise = null;
+    const dashboardCharts = {};
+
+    function formatPercent(value, digits = 1) {
+      if (value === null || value === undefined || Number.isNaN(Number(value))) {
+        return '0%';
+      }
+      return `${Number(value).toFixed(digits)}%`;
+    }
+
+    function formatHours(value) {
+      if (value === null || value === undefined || Number.isNaN(Number(value))) {
+        return '0 h';
+      }
+      if (Math.abs(value) < 10) {
+        return `${Number(value).toFixed(1)} h`;
+      }
+      return `${Math.round(Number(value))} h`;
+    }
+
+    function formatDateTime(value) {
+      if (!value) return '—';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '—';
+      return `${date.toLocaleDateString('pl-PL', { day: '2-digit', month: 'short' })} ${date.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`;
+    }
+
+    function healthLabel(status) {
+      switch (status) {
+        case 'on_track':
+          return 'Na dobrej drodze';
+        case 'needs_attention':
+          return 'Wymaga uwagi';
+        case 'at_risk':
+          return 'Zagrożone';
+        case 'behind':
+          return 'Opóźnione';
+        default:
+          return 'Brak danych';
+      }
+    }
+
+    function healthIcon(status) {
+      switch (status) {
+        case 'on_track':
+          return 'trending_up';
+        case 'needs_attention':
+          return 'monitor_heart';
+        case 'at_risk':
+          return 'warning';
+        case 'behind':
+          return 'trending_down';
+        default:
+          return 'help';
+      }
+    }
+
+    function renderMetricsSummary() {
+      const container = document.getElementById('metricsSummary');
+      if (!container) return;
+
+      if (!metricsData || !metricsData.summary) {
+        container.innerHTML = `
+          <div class="metric-card">
+            <div class="metric-label">Metryki</div>
+            <div class="metric-value" style="font-size:1.1em;">
+              <span class="material-icons">hourglass_bottom</span>
+              Ładowanie danych...
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const summary = metricsData.summary;
+      const cards = [
+        {
+          label: 'Ukończenie',
+          value: formatPercent(summary.completion_rate ?? 0),
+          sub: `${summary.completed_tasks}/${summary.total_tasks} zadań`,
+          icon: 'task_alt',
+          tone: summary.completion_rate >= 80 ? 'success' : summary.completion_rate >= 50 ? '' : 'warning',
+          chip: summary.open_tasks ? `${summary.open_tasks} w toku` : null,
+        },
+        {
+          label: 'Zaległości',
+          value: `${summary.overdue_tasks ?? 0}`,
+          sub: summary.upcoming_tasks ? `${summary.upcoming_tasks} nadchodzących` : 'Brak nadchodzących',
+          icon: 'event_busy',
+          tone: summary.overdue_tasks > 0 ? 'danger' : 'success',
+        },
+        {
+          label: 'Tempo (7 dni)',
+          value: `${summary.velocity_7d ?? 0}`,
+          sub: 'Zadań ukończonych w ostatnich 7 dniach',
+          icon: 'bolt',
+          tone: summary.velocity_7d >= 5 ? 'success' : '',
+        },
+        {
+          label: 'Estymacje',
+          value: summary.total_estimated_hours > 0 ? formatPercent(summary.estimate_accuracy ?? 0) : '—',
+          sub: summary.total_estimated_hours > 0 ? `${formatHours(summary.total_actual_hours)} / ${formatHours(summary.total_estimated_hours)}` : 'Brak estymacji',
+          icon: 'schedule',
+          tone: summary.total_estimated_hours > 0 && summary.estimate_accuracy > 120 ? 'warning' : '',
+        },
+      ];
+
+      container.innerHTML = cards.map(card => `
+        <div class="metric-card ${card.tone || ''}">
+          <div class="metric-label">${card.label}</div>
+          <div class="metric-value">
+            <span class="material-icons">${card.icon}</span>
+            ${card.value}
+            ${card.chip ? `<span class="metric-chip">${card.chip}</span>` : ''}
+          </div>
+          ${card.sub ? `<div class="metric-sub">${card.sub}</div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    async function fetchMetrics(force = false) {
+      if (metricsPromise) {
+        if (!force) {
+          return metricsPromise;
+        }
+        try {
+          await metricsPromise;
+        } catch (err) {
+          console.error("Previous metrics fetch failed:", err);
+        }
+      }
+
+      metricsPromise = (async () => {
+        try {
+          const res = await safeFetch(`${API}/metrics`);
+          metricsData = await res.json();
+          renderMetricsSummary();
+          renderDashboardContent();
+        } catch (error) {
+          console.error("Failed to fetch metrics:", error);
+        } finally {
+          metricsPromise = null;
+        }
+      })();
+
+      return metricsPromise;
+    }
+
+    function openDashboard() {
+      if (document.getElementById('dashboardOverlay')) {
+        renderDashboardContent();
+        return;
+      }
+
+      const overlay = document.createElement('div');
+      overlay.id = 'dashboardOverlay';
+      overlay.className = 'dashboard-overlay';
+      overlay.innerHTML = `
+        <div class="dashboard-content" role="dialog" aria-modal="true">
+          <div class="dashboard-header">
+            <h2><span class="material-icons">analytics</span> Dashboard metryk</h2>
+            <button class="dashboard-close" onclick="closeDashboard()" aria-label="Zamknij panel">
+              <span class="material-icons">close</span>
+            </button>
+          </div>
+          <div class="metrics-summary" id="dashboardSummary"></div>
+          <div class="dashboard-grid" id="dashboardPrimary"></div>
+        </div>
+      `;
+
+      overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) {
+          closeDashboard();
+        }
+      });
+
+      document.getElementById('modalRoot').appendChild(overlay);
+      requestAnimationFrame(() => overlay.classList.add('open'));
+      renderDashboardContent();
+      fetchMetrics(!!metricsData);
+    }
+
+    function closeDashboard() {
+      const overlay = document.getElementById('dashboardOverlay');
+      if (!overlay) return;
+      Object.keys(dashboardCharts).forEach(destroyDashboardChart);
+      overlay.classList.remove('open');
+      setTimeout(() => overlay.remove(), 180);
+    }
+
+    function renderDashboardContent() {
+      const overlay = document.getElementById('dashboardOverlay');
+      if (!overlay) return;
+      if (!metricsData || !metricsData.summary) {
+        document.getElementById('dashboardSummary').innerHTML = `
+          <div class="metric-card">
+            <div class="metric-label">Metryki</div>
+            <div class="metric-value">
+              <span class="material-icons">hourglass_bottom</span> Ładowanie...
+            </div>
+          </div>`;
+        document.getElementById('dashboardPrimary').innerHTML = '';
+        document.getElementById('dashboardProjects').innerHTML = '';
+        return;
+      }
+
+      const summary = metricsData.summary;
+      const status = metricsData.status_breakdown || {};
+      const assignees = metricsData.assignees || [];
+      const tags = metricsData.tag_usage || [];
+
+      document.getElementById('dashboardSummary').innerHTML = `
+        <div class="metric-card ${summary.completion_rate >= 80 ? 'success' : summary.completion_rate >= 50 ? '' : 'warning'}">
+          <div class="metric-label">Wskaźnik ukończenia</div>
+          <div class="metric-value"><span class="material-icons">task_alt</span>${formatPercent(summary.completion_rate ?? 0)}</div>
+          <div class="metric-sub">${summary.completed_tasks}/${summary.total_tasks} zadań</div>
+        </div>
+        <div class="metric-card ${summary.overdue_tasks > 0 ? 'danger' : 'success'}">
+          <div class="metric-label">Zaległe zadania</div>
+          <div class="metric-value"><span class="material-icons">event_busy</span>${summary.overdue_tasks ?? 0}</div>
+          <div class="metric-sub">${summary.upcoming_tasks ? `${summary.upcoming_tasks} nadchodzących terminów` : 'Brak nadchodzących terminów'}</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Priorytet średni</div>
+          <div class="metric-value"><span class="material-icons">flag</span>${(summary.average_priority ?? 0).toFixed(2)}</div>
+          <div class="metric-sub">${status.open ?? 0} aktywnych • ${status.done ?? 0} ukończonych</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Struktura statusów</div>
+          <div class="metric-value">
+            <span class="material-icons">pie_chart</span>
+            <span class="metric-chip">Otwarte: ${status.open ?? 0}</span>
+            <span class="metric-chip" style="background:rgba(22,163,74,0.15);color:#15803d;">Zakończone: ${status.done ?? 0}</span>
+            <span class="metric-chip" style="background:rgba(220,38,38,0.15);color:#b91c1c;">Zaległe: ${status.overdue ?? 0}</span>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('dashboardPrimary').innerHTML = `
+        <section class="dashboard-section">
+          <h3><span class="material-icons">insights</span>Dystrybucja priorytetów</h3>
+          <div class="chart-container"><canvas id="chartPriority"></canvas></div>
+        </section>
+        <section class="dashboard-section">
+          <h3><span class="material-icons">timeline</span>Tempo pracy (14 dni)</h3>
+          <div class="chart-container"><canvas id="chartThroughput"></canvas></div>
+        </section>
+        <section class="dashboard-section">
+          <h3><span class="material-icons">group</span>Obciążenie wykonawców</h3>
+          ${assignees.length ? '<div class="chart-container"><canvas id="chartAssignees"></canvas></div>' : '<div class="metric-sub">Brak przypisanych wykonawców</div>'}
+        </section>
+        <section class="dashboard-section">
+          <h3><span class="material-icons">category</span>Najczęstsze tagi</h3>
+          <div class="dashboard-tags">
+            ${tags.length ? tags.map(item => `<span class="metric-chip">${item.tag} • ${item.count}</span>`).join('') : '<span class="metric-sub">Brak tagów</span>'}
+          </div>
+        </section>
+      `;
+
+      renderMetricsSummary();
+      renderDashboardCharts();
+    }
+
+    function renderDashboardCharts() {
+      if (typeof Chart === 'undefined' || !metricsData) return;
+
+      const priorityCanvas = document.getElementById('chartPriority');
+      if (priorityCanvas) {
+        destroyDashboardChart('priority');
+        const distribution = metricsData.priority_distribution || [];
+        const labels = distribution.map(item => `Priorytet ${item.level}`);
+        const data = distribution.map(item => item.count);
+        dashboardCharts.priority = new Chart(priorityCanvas, {
+          type: 'doughnut',
+          data: {
+            labels,
+            datasets: [{
+              data,
+              backgroundColor: [
+                'rgba(22, 163, 74, 0.7)',
+                'rgba(59, 130, 246, 0.7)',
+                'rgba(249, 115, 22, 0.75)',
+                'rgba(239, 68, 68, 0.75)',
+                'rgba(109, 40, 217, 0.75)'
+              ],
+              borderWidth: 1,
+            }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--text') },
+              },
+            },
+          },
+        });
+      }
+
+      const throughputCanvas = document.getElementById('chartThroughput');
+      if (throughputCanvas) {
+        destroyDashboardChart('throughput');
+        const throughput = metricsData.throughput || [];
+        const labels = throughput.map(item => item.date.slice(5));
+        dashboardCharts.throughput = new Chart(throughputCanvas, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Utworzone',
+                data: throughput.map(item => item.created),
+                borderColor: 'rgba(37, 99, 235, 0.9)',
+                backgroundColor: 'rgba(37, 99, 235, 0.15)',
+                tension: 0.35,
+                fill: true,
+              },
+              {
+                label: 'Ukończone',
+                data: throughput.map(item => item.completed),
+                borderColor: 'rgba(16, 185, 129, 0.9)',
+                backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                tension: 0.35,
+                fill: true,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--text') },
+              },
+            },
+            scales: {
+              x: {
+                ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--text') },
+                grid: { color: 'rgba(148, 163, 184, 0.16)' },
+              },
+              y: {
+                beginAtZero: true,
+                ticks: { precision: 0, color: getComputedStyle(document.documentElement).getPropertyValue('--text') },
+                grid: { color: 'rgba(148, 163, 184, 0.16)' },
+              },
+            },
+          },
+        });
+      }
+
+      const assigneeCanvas = document.getElementById('chartAssignees');
+      if (assigneeCanvas && (metricsData.assignees || []).length) {
+        destroyDashboardChart('assignees');
+        const assignees = metricsData.assignees || [];
+        dashboardCharts.assignees = new Chart(assigneeCanvas, {
+          type: 'bar',
+          data: {
+            labels: assignees.map(item => item.name),
+            datasets: [
+              {
+                label: 'Otwarte',
+                data: assignees.map(item => item.open_tasks),
+                backgroundColor: 'rgba(249, 115, 22, 0.75)',
+              },
+              {
+                label: 'Ukończone',
+                data: assignees.map(item => item.completed_tasks),
+                backgroundColor: 'rgba(34, 197, 94, 0.75)',
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--text') },
+              },
+            },
+            scales: {
+              x: {
+                ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--text') },
+                grid: { display: false },
+              },
+              y: {
+                beginAtZero: true,
+                ticks: { precision: 0, color: getComputedStyle(document.documentElement).getPropertyValue('--text') },
+                grid: { color: 'rgba(148, 163, 184, 0.16)' },
+              },
+            },
+          },
+        });
+      }
+    }
+
+    function destroyDashboardChart(key) {
+      if (dashboardCharts[key]) {
+        dashboardCharts[key].destroy();
+        delete dashboardCharts[key];
+      }
+    }
 
     // Motyw
     function setTheme(theme) {
       document.documentElement.setAttribute('data-theme', theme);
       localStorage.setItem('theme', theme);
       document.querySelector('.theme-btn .material-icons').textContent = theme === 'dark' ? 'light_mode' : 'dark_mode';
+      renderDashboardCharts();
     }
     function toggleTheme() {
       const current = document.documentElement.getAttribute('data-theme') || 'light';
@@ -1845,9 +2475,17 @@
       try {
         ws = new WebSocket("ws://localhost:8080/ws");
         ws.onmessage = function(event) {
-          if (event.data === "update") {
-            fetchProjects();
-            fetchTasks();
+          try {
+            const payload = JSON.parse(event.data);
+            if (payload.type === "change") {
+              fetchProjects();
+              fetchTasks();
+            }
+          } catch (err) {
+            if (event.data === "update") {
+              fetchProjects();
+              fetchTasks();
+            }
           }
         };
         ws.onclose = function() {
@@ -1885,6 +2523,7 @@
         projects = await res.json();
         renderProjects();
         renderProjectDetails();
+        await fetchMetrics();
       } catch (error) {
         console.error("Failed to fetch projects:", error);
       }
@@ -1896,6 +2535,7 @@
         tasks = await res.json();
         renderTasks();
         renderProjects();
+        await fetchMetrics();
       } catch (error) {
         console.error("Failed to fetch tasks:", error);
       }
@@ -1913,6 +2553,7 @@
     });
     
     connectWebSocket();
+    renderMetricsSummary();
     Promise.all([fetchProjects(), fetchTasks()]);
 
     document.addEventListener('keydown', (event) => {

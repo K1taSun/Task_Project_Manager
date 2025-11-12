@@ -26,6 +26,7 @@ func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/tasks/", withCORS(logMiddleware(taskHandler)))
 	mux.HandleFunc("/export", withCORS(logMiddleware(exportHandler)))
 	mux.HandleFunc("/badges", withCORS(logMiddleware(badgesHandler)))
+	mux.HandleFunc("/metrics", withCORS(logMiddleware(metricsHandler)))
 	mux.HandleFunc("/ws", logMiddleware(wsHandler))
 	mux.HandleFunc("/", logMiddleware(serveIndex))
 }
