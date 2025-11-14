@@ -2,7 +2,6 @@
 .idea/
 *.log
 bin/
-task-manager
 cmd/task-manager/task-manager
 cmd/task-manager/task-manager.exe
 tmp/
