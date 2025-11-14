@@ -17,6 +17,7 @@
 - **Motyw jasny/ciemny** oraz responsywny interfejs przygotowany na urządzenia mobilne
 - **Zaawansowane metryki** – dashboard z podsumowaniami, wykresami priorytetów, przepływu pracy i obciążenia wykonawców
 - **Autoryzacja i role** – logowanie z użyciem ciasteczek HttpOnly, role `admin`/`manager`/`viewer`, zarządzanie użytkownikami
+  - Panel admina w interfejsie pozwala tworzyć i usuwać konta bezpośrednio z przeglądarki
 
 ---
 
@@ -97,6 +98,7 @@
 4. **Frontend:** otwórz w przeglądarce `http://localhost:8080`.
 5. **Logowanie:** przy pierwszym uruchomieniu tworzony jest użytkownik `admin@example.com` z hasłem `admin123`. Zmień je od razu po zalogowaniu.
 6. **Dashboard metryk:** kliknij ikonę wykresu w górnym pasku, aby zobaczyć podsumowania i wykresy (Chart.js jest ładowany z CDN).
+7. **Zarządzanie użytkownikami:** jako Administrator skorzystaj z przycisku „Użytkownicy” w górnym pasku, aby dodać nowe konto lub usunąć istniejące.
 
 > Pliki `data_projects.json`, `data_tasks.json` oraz `data_users.json` są wykluczone z repozytorium (zapisują bieżący stan). Jeśli zaczynasz od pustej instalacji, aplikacja sama utworzy te pliki przy pierwszym uruchomieniu.
 
