@@ -120,6 +120,111 @@
       max-height: 88vh;
       overflow-y: auto;
     }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+    .user-info .role {
+      font-size: 0.75em;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #6366f1;
+    }
+    .user-info button {
+      background: none;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      font-size: 0.9em;
+      padding: 4px 8px;
+      border-radius: 8px;
+      transition: background var(--transition);
+    }
+    .user-info button:hover {
+      background: rgba(37, 99, 235, 0.12);
+    }
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      backdrop-filter: blur(6px);
+      background: rgba(15, 23, 42, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 300;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .auth-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .auth-dialog {
+      width: min(420px, 92vw);
+      background: var(--card);
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.3);
+      padding: 28px 26px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .auth-dialog h2 {
+      margin: 0;
+      font-size: 1.35em;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .auth-dialog label {
+      font-size: 0.9em;
+      font-weight: 500;
+      color: #475569;
+    }
+    .auth-dialog input {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      transition: border var(--transition), box-shadow var(--transition);
+    }
+    .auth-dialog input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+    .auth-dialog button[type="submit"] {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background var(--transition), box-shadow var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .auth-dialog button[type="submit"]:hover {
+      background: var(--primary-dark);
+      box-shadow: 0 16px 36px rgba(37, 99, 235, 0.28);
+    }
+    .auth-error {
+      color: #dc2626;
+      font-size: 0.85em;
+      font-weight: 500;
+      min-height: 18px;
+    }
     .dashboard-header {
       display: flex;
       align-items: center;
@@ -1352,21 +1457,26 @@
       </button>
       <div class="logo"><span class="material-icons">dashboard_customize</span> Menadżer zadań</div>
     </div>
-    <div class="actions">
+    <div class="actions" id="navActions">
       <button onclick="exportData('json')" title="Eksportuj JSON"><span class="material-icons">download</span></button>
       <button onclick="exportData('csv')" title="Eksportuj CSV"><span class="material-icons">table_view</span></button>
       <button onclick="openDashboard()" title="Dashboard metryk"><span class="material-icons">analytics</span></button>
       <button class="theme-btn" onclick="toggleTheme()" title="Zmień motyw"><span class="material-icons">dark_mode</span></button>
+      <div class="user-info" id="userInfo" style="display:none;">
+        <span id="userNameLabel"></span>
+        <span class="role" id="userRoleLabel"></span>
+        <button type="button" onclick="logout()">Wyloguj</button>
+      </div>
     </div>
   </nav>
   <div class="layout">
     <aside class="sidebar">
       <div class="sidebar-header">
         <span>Projekty</span>
-        <button class="material-icons" onclick="showProjectModal()" title="Dodaj projekt">add</button>
+        <button class="material-icons" onclick="showProjectModal()" title="Dodaj projekt" data-role="manager" style="display:none;">add</button>
       </div>
       <div class="sidebar-list" id="projectsList"></div>
-      <button class="add-project-btn" onclick="showProjectModal()">+ Nowy projekt</button>
+      <button class="add-project-btn" onclick="showProjectModal()" data-role="manager" style="display:none;">+ Nowy projekt</button>
     </aside>
     <main class="main">
       <div id="metricsSummary" class="metrics-summary"></div>
@@ -1394,10 +1504,28 @@
       <div class="tasks-list" id="tasksList"></div>
     </main>
   </div>
-  <button class="fab" onclick="showTaskModal()" title="Dodaj zadanie"><span class="material-icons">add</span></button>
+  <button class="fab" onclick="showTaskModal()" title="Dodaj zadanie" style="display:none;"><span class="material-icons">add</span></button>
   <div id="modalRoot"></div>
+  <div id="authOverlay" class="auth-overlay">
+    <form class="auth-dialog" onsubmit="handleLogin(event)">
+      <h2><span class="material-icons">lock</span> Logowanie</h2>
+      <div>
+        <label for="authEmail">Email</label>
+        <input id="authEmail" type="email" autocomplete="email" required>
+      </div>
+      <div>
+        <label for="authPassword">Hasło</label>
+        <input id="authPassword" type="password" autocomplete="current-password" required>
+      </div>
+      <div class="auth-error" id="authError"></div>
+      <button type="submit">
+        <span class="material-icons">login</span> Zaloguj
+      </button>
+    </form>
+  </div>
   <script>
     const API = "http://localhost:8080";
+    let currentUser = null;
     let projects = [];
     let tasks = [];
     let selectedProject = null;
@@ -1407,6 +1535,164 @@
     let metricsData = null;
     let metricsPromise = null;
     const dashboardCharts = {};
+
+    function canManage() {
+      return currentUser && (currentUser.role === 'manager' || currentUser.role === 'admin');
+    }
+
+    function isAdmin() {
+      return currentUser && currentUser.role === 'admin';
+    }
+
+    function showLoginOverlay(message = "") {
+      const overlay = document.getElementById('authOverlay');
+      if (!overlay) return;
+      overlay.classList.add('open');
+      const errorBox = document.getElementById('authError');
+      if (errorBox) errorBox.textContent = message;
+      setTimeout(() => {
+        const emailField = document.getElementById('authEmail');
+        if (emailField) {
+          emailField.focus();
+          emailField.select();
+        }
+      }, 100);
+    }
+
+    function hideLoginOverlay() {
+      const overlay = document.getElementById('authOverlay');
+      if (!overlay) return;
+      overlay.classList.remove('open');
+      const errorBox = document.getElementById('authError');
+      if (errorBox) errorBox.textContent = "";
+    }
+
+    function updateUserInfoUI() {
+      const infoBox = document.getElementById('userInfo');
+      const nameLabel = document.getElementById('userNameLabel');
+      const roleLabel = document.getElementById('userRoleLabel');
+      if (!infoBox) return;
+      if (!currentUser) {
+        infoBox.style.display = 'none';
+        if (nameLabel) nameLabel.textContent = "";
+        if (roleLabel) roleLabel.textContent = "";
+        return;
+      }
+      infoBox.style.display = 'flex';
+      if (nameLabel) {
+        nameLabel.textContent = currentUser.name || currentUser.email || 'Użytkownik';
+      }
+      if (roleLabel) {
+        roleLabel.textContent = (currentUser.role || '').toUpperCase();
+      }
+    }
+
+    function updateRoleVisibility() {
+      const requiresManager = document.querySelectorAll('[data-role="manager"]');
+      const canManageFlag = canManage();
+      requiresManager.forEach(element => {
+        element.style.display = canManageFlag ? '' : 'none';
+      });
+      const fab = document.querySelector('.fab');
+      if (fab) {
+        fab.style.display = canManageFlag ? 'flex' : 'none';
+      }
+    }
+
+    function resetAppState() {
+      projects = [];
+      tasks = [];
+      selectedProject = null;
+      metricsData = null;
+      metricsPromise = null;
+      renderProjects();
+      renderProjectDetails();
+      renderTasks();
+      renderMetricsSummary();
+    }
+
+    async function fetchCurrentUser() {
+      try {
+        const res = await fetch(`${API}/auth/me`, { credentials: 'include' });
+        if (!res.ok) {
+          currentUser = null;
+          updateUserInfoUI();
+          updateRoleVisibility();
+          return false;
+        }
+        currentUser = await res.json();
+        updateUserInfoUI();
+        updateRoleVisibility();
+        return true;
+      } catch (error) {
+        console.error("Failed to fetch current user:", error);
+        return false;
+      }
+    }
+
+    async function initializeApp() {
+      const authenticated = await fetchCurrentUser();
+      if (!authenticated) {
+        disconnectWebSocket();
+        resetAppState();
+        showLoginOverlay();
+        return;
+      }
+      hideLoginOverlay();
+      await Promise.all([fetchProjects(), fetchTasks()]);
+      connectWebSocket();
+    }
+
+    async function handleLogin(event) {
+      event.preventDefault();
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value.trim();
+      const errorBox = document.getElementById('authError');
+      if (!email || !password) {
+        if (errorBox) errorBox.textContent = "Podaj email i hasło.";
+        return;
+      }
+      try {
+        const res = await fetch(`${API}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email, password })
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          if (errorBox) errorBox.textContent = data.error || 'Nieprawidłowy email lub hasło.';
+          return;
+        }
+        currentUser = await res.json();
+        document.getElementById('authPassword').value = "";
+        hideLoginOverlay();
+        updateUserInfoUI();
+        updateRoleVisibility();
+        await Promise.all([fetchProjects(), fetchTasks()]);
+        connectWebSocket(true);
+      } catch (error) {
+        console.error("Login failed:", error);
+        if (errorBox) errorBox.textContent = "Wystąpił błąd logowania. Spróbuj ponownie.";
+      }
+    }
+
+    async function logout() {
+      try {
+        await fetch(`${API}/auth/logout`, {
+          method: 'POST',
+          credentials: 'include'
+        });
+      } catch (error) {
+        console.error("Logout failed:", error);
+      }
+      currentUser = null;
+      updateUserInfoUI();
+      updateRoleVisibility();
+      disconnectWebSocket();
+      resetAppState();
+      showLoginOverlay();
+    }
 
     function formatPercent(value, digits = 1) {
       if (value === null || value === undefined || Number.isNaN(Number(value))) {
@@ -1554,6 +1840,10 @@
     }
 
     function openDashboard() {
+      if (!currentUser) {
+        showLoginOverlay();
+        return;
+      }
       if (document.getElementById('dashboardOverlay')) {
         renderDashboardContent();
         return;
@@ -1830,11 +2120,15 @@
 
     // Projekty
     async function fetchProjects() {
-      const res = await fetch(`${API}/projects`);
-      
-      projects = await res.json();
-      renderProjects();
-      renderProjectDetails();
+      try {
+        const res = await safeFetch(`${API}/projects`);
+        projects = await res.json();
+        renderProjects();
+        renderProjectDetails();
+        await fetchMetrics();
+      } catch (error) {
+        console.error("Failed to fetch projects:", error);
+      }
     }
     function renderProjects() {
       const list = document.getElementById('projectsList');
@@ -1864,12 +2158,15 @@
           <span class="count">${tasks.filter(t=>t.project_id===p.id).length}</span>
         </div>`;
         div.onclick = () => { selectedProject = p.id; renderProjects(); renderTasks(); renderProjectDetails(); };
-        div.oncontextmenu = (e) => {
-          e.preventDefault();
-          showProjectModal(p);
-        };
-        // Dodaj tooltip z informacją o prawym kliku
-        div.title = `Prawy klik: Edytuj projekt`;
+        if (canManage()) {
+          div.oncontextmenu = (e) => {
+            e.preventDefault();
+            showProjectModal(p);
+          };
+          div.title = `Prawy klik: Edytuj projekt`;
+        } else {
+          div.title = '';
+        }
         list.appendChild(div);
       });
     }
@@ -1891,6 +2188,7 @@
       }
       const projectTasks = tasks.filter(t => t.project_id === project.id);
       const count = projectTasks.length;
+      const managePermissions = canManage();
 
       const tasksMarkup = projectTasks.length
         ? projectTasks.sort((a, b) => {
@@ -1906,6 +2204,12 @@
             const priorityChip = `<span class="chip"><span class="material-icons">flag</span>${task.priority || 0}</span>`;
             const tagsChip = (task.tags || []).length ? `<span class="chip"><span class="material-icons">label</span>${task.tags.join(', ')}</span>` : '';
             const badgeHtml = task.badge ? `<div>${renderBadge(task.badge)}</div>` : '';
+            const actions = managePermissions ? `
+                <div class="project-task-actions">
+                  <button onclick="toggleDone(${task.id})" title="${task.done ? 'Oznacz jako niewykonane' : 'Oznacz jako wykonane'}"><span class="material-icons">${task.done ? 'restart_alt' : 'check'}</span></button>
+                  <button onclick="showTaskModal(tasks.find(t=>t.id===${task.id}))" title="Edytuj zadanie"><span class="material-icons">edit</span></button>
+                </div>
+            ` : '';
             return `
               <div class="project-task-entry${task.done ? ' done' : ''}">
                 <div class="project-task-main">
@@ -1921,10 +2225,7 @@
                   </div>
                   ${badgeHtml}
                 </div>
-                <div class="project-task-actions">
-                  <button onclick="toggleDone(${task.id})" title="${task.done ? 'Oznacz jako niewykonane' : 'Oznacz jako wykonane'}"><span class="material-icons">${task.done ? 'restart_alt' : 'check'}</span></button>
-                  <button onclick="showTaskModal(tasks.find(t=>t.id===${task.id}))" title="Edytuj zadanie"><span class="material-icons">edit</span></button>
-                </div>
+                ${actions}
               </div>
             `;
           }).join('')
@@ -1932,9 +2233,17 @@
           <div class="project-task-empty">
             <span class="material-icons">checklist</span>
             <div>Brak zadań w tym projekcie</div>
-            <button class="overview-quick-button" onclick="showTaskModal(null, ${project.id})">Dodaj pierwsze zadanie</button>
+            ${managePermissions ? `<button class="overview-quick-button" onclick="showTaskModal(null, ${project.id})">Dodaj pierwsze zadanie</button>` : ''}
           </div>
         `;
+
+      const actionsArea = managePermissions ? `
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button title='Dodaj zadanie do projektu' onclick='showTaskModal(null, ${project.id})' style='background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;'><span class="material-icons">add_task</span></button>
+            <button title='Edytuj projekt' onclick='showProjectModal(projects.find(p=>p.id===${project.id}))' style='background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;'><span class="material-icons">edit</span></button>
+            <button title='Usuń projekt' onclick='deleteProject(${project.id})' style='background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;'><span class="material-icons">delete</span></button>
+          </div>
+      ` : '';
 
       details.innerHTML = `
         <div style="background:var(--card);border-radius:16px;padding:18px 22px;margin-bottom:18px;box-shadow:var(--shadow);border:1.5px solid var(--border);display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
@@ -1945,11 +2254,7 @@
             ${project.description ? `<div style="color:#666;font-size:0.9em;margin-top:4px;">${project.description}</div>` : ''}
             ${project.badge ? `<div style="margin-top:8px;">${renderBadge(project.badge)}</div>` : ''}
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button title='Dodaj zadanie do projektu' onclick='showTaskModal(null, ${project.id})' style='background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;'><span class="material-icons">add_task</span></button>
-            <button title='Edytuj projekt' onclick='showProjectModal(projects.find(p=>p.id===${project.id}))' style='background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;'><span class="material-icons">edit</span></button>
-            <button title='Usuń projekt' onclick='deleteProject(${project.id})' style='background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;'><span class="material-icons">delete</span></button>
-          </div>
+          ${actionsArea}
         </div>
         <div class="project-tasks-panel">
           <div class="project-tasks-header">
@@ -1961,6 +2266,10 @@
       `;
     }
     async function saveProject() {
+      if (!canManage()) {
+        alert("Brak uprawnień do zapisu projektu.");
+        return;
+      }
       const name = document.getElementById('projectName').value.trim();
       if (!name) return alert('Nazwa projektu jest wymagana!');
       try {
@@ -1995,6 +2304,7 @@
         tasks = await res.json();
         renderTasks();
         renderProjects();
+        await fetchMetrics();
       } catch (error) {
         console.error("Failed to fetch tasks:", error);
       }
@@ -2025,6 +2335,7 @@
         if (!b.deadline) return -1;
         return new Date(a.deadline) - new Date(b.deadline);
       });
+      const managePermissions = canManage();
       if (filtered.length === 0) {
         const emptyDiv = document.createElement('div');
         emptyDiv.style.cssText = 'grid-column:1/-1;text-align:center;padding:40px;color:#888;font-style:italic;background:var(--card);border-radius:var(--radius);border:1.5px solid var(--border);';
@@ -2038,12 +2349,24 @@
         card.className = 'task-card' + (t.done ? ' done' : '') + (compactView ? ' compact' : '');
         
         if (compactView) {
-          // Widok kompaktowy - lista
-          card.innerHTML = `
-            <div style="display:flex;align-items:center;gap:12px;width:100%;">
+          const compactActions = managePermissions ? `
               <button title="${t.done ? 'Oznacz jako niewykonane' : 'Oznacz jako wykonane'}" onclick="toggleDone(${t.id})" style="background:none;border:none;cursor:pointer;color:var(--primary);">
                 <span class="material-icons">${t.done ? 'check_box' : 'check_box_outline_blank'}</span>
               </button>
+          ` : '';
+          const trailingActions = managePermissions ? `
+              <div style="display:flex;gap:4px;">
+                <button title="Edytuj" onclick="showTaskModal(tasks.find(x=>x.id===${t.id}))" style="background:none;border:none;cursor:pointer;padding:4px;border-radius:4px;color:var(--primary);">
+                  <span class="material-icons">edit</span>
+                </button>
+                <button title="Usuń" onclick="deleteTask(${t.id})" style="background:none;border:none;cursor:pointer;padding:4px;border-radius:4px;color:var(--primary);">
+                  <span class="material-icons">delete</span>
+                </button>
+              </div>
+          ` : '';
+          card.innerHTML = `
+            <div style="display:flex;align-items:center;gap:12px;width:100%;">
+              ${compactActions}
               <div style="flex:1;min-width:0;">
                 <div style="font-weight:600;font-size:1.1em;margin-bottom:4px;">${t.title}</div>
                 ${t.description ? `<div style="font-size:0.9em;color:#666;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.description}</div>` : ''}
@@ -2053,18 +2376,18 @@
                   ${(t.tags||[]).length > 0 ? `<span style="color:var(--primary);">${(t.tags||[]).join(', ')}</span>` : ''}
                 </div>
               </div>
-              <div style="display:flex;gap:4px;">
-                <button title="Edytuj" onclick="showTaskModal(tasks.find(x=>x.id===${t.id}))" style="background:none;border:none;cursor:pointer;padding:4px;border-radius:4px;color:var(--primary);">
-                  <span class="material-icons">edit</span>
-                </button>
-                <button title="Usuń" onclick="deleteTask(${t.id})" style="background:none;border:none;cursor:pointer;padding:4px;border-radius:4px;color:var(--primary);">
-                  <span class="material-icons">delete</span>
-                </button>
-              </div>
+              ${trailingActions}
             </div>
           `;
         } else {
-          // Widok kart
+          const cardActions = managePermissions ? `
+            <div class="actions">
+              <button title="Edytuj" onclick="showTaskModal(tasks.find(x=>x.id===${t.id}))"><span class="material-icons">edit</span></button>
+              <button title="Usuń" onclick="deleteTask(${t.id})"><span class="material-icons">delete</span></button>
+              <button title="${t.done ? 'Oznacz jako niewykonane' : 'Oznacz jako wykonane'}" onclick="toggleDone(${t.id})"><span class="material-icons">${t.done ? 'check_box' : 'check_box_outline_blank'}</span></button>
+            </div>
+          ` : '';
+
           card.innerHTML = `
             <div class="row">
               <span class="title">${t.title}</span>
@@ -2076,11 +2399,7 @@
               ${t.priority ? `<span class="material-icons" style="font-size:1em;vertical-align:middle;">flag</span> Priorytet: ${t.priority}` : ''}
               <span>${t.done ? '<span class="material-icons" style="color:var(--primary)">check_circle</span> Wykonane' : ''}</span>
             </div>
-            <div class="actions">
-              <button title="Edytuj" onclick="showTaskModal(tasks.find(x=>x.id===${t.id}))"><span class="material-icons">edit</span></button>
-              <button title="Usuń" onclick="deleteTask(${t.id})"><span class="material-icons">delete</span></button>
-              <button title="${t.done ? 'Oznacz jako niewykonane' : 'Oznacz jako wykonane'}" onclick="toggleDone(${t.id})"><span class="material-icons">${t.done ? 'check_box' : 'check_box_outline_blank'}</span></button>
-            </div>
+            ${cardActions}
           `;
         }
         
@@ -2088,6 +2407,10 @@
       });
     }
     async function saveTask() {
+      if (!canManage()) {
+        alert("Brak uprawnień do zapisu zadania.");
+        return;
+      }
       const title = document.getElementById('taskTitle').value.trim();
       const description = document.getElementById('taskDescription').value.trim();
       const projectSelectValue = document.getElementById('taskProject').value;
@@ -2139,6 +2462,10 @@
       }
     }
     async function deleteTask(id) {
+      if (!canManage()) {
+        alert("Brak uprawnień do usuwania zadań.");
+        return;
+      }
       if (!confirm('Na pewno usunąć zadanie?')) return;
       try {
         await safeFetch(`${API}/tasks/${id}`, { method: 'DELETE' });
@@ -2148,6 +2475,10 @@
       }
     }
     async function deleteProject(id) {
+      if (!canManage()) {
+        alert("Brak uprawnień do usuwania projektów.");
+        return;
+      }
       if (!confirm('Na pewno usunąć projekt?')) return;
       try {
         await safeFetch(`${API}/projects/${id}`, { method: 'DELETE' });
@@ -2167,6 +2498,10 @@
     }
     // Modale
     function showProjectModal(project) {
+      if (!canManage()) {
+        alert("Brak uprawnień do zarządzania projektami.");
+        return;
+      }
       editingProject = project;
       const modal = document.createElement('div');
       modal.className = 'modal-bg';
@@ -2185,6 +2520,10 @@
       document.getElementById('modalRoot').appendChild(modal);
     }
     function showTaskModal(task, projectId = null) {
+      if (!canManage()) {
+        alert("Brak uprawnień do zarządzania zadaniami.");
+        return;
+      }
       editingTask = task;
       // Jeśli podano projectId, użyj go jako domyślnego projektu
       if (projectId && !task) {
@@ -2238,6 +2577,10 @@
     }
     // Eksport
     function exportData(format) {
+      if (!currentUser) {
+        showLoginOverlay();
+        return;
+      }
       window.open(`${API}/export?format=${format}`);
     }
     // Funkcja do rozwijania opisu
@@ -2272,6 +2615,10 @@
     
     // Dodaj funkcję toggleDone jeśli nie istnieje
     function toggleDone(id) {
+      if (!canManage()) {
+        alert("Brak uprawnień do zmiany statusu zadania.");
+        return;
+      }
       const task = tasks.find(t => t.id === id);
       if (!task) return;
       task.done = !task.done;
@@ -2308,6 +2655,10 @@
     }
 
     async function openOverview() {
+      if (!currentUser) {
+        showLoginOverlay();
+        return;
+      }
       if (!projects.length) {
         await fetchProjects();
       }
@@ -2470,10 +2821,28 @@
     
     // Inicjalizacja
     let ws = null;
+    let wsReconnectTimer = null;
     
-    function connectWebSocket() {
+    function connectWebSocket(force = false) {
+      if (!currentUser) {
+        return;
+      }
+      if (ws && ws.readyState === WebSocket.OPEN && !force) {
+        return;
+      }
+      if (ws) {
+        ws.onclose = null;
+        ws.close();
+      }
+      const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
       try {
-        ws = new WebSocket("ws://localhost:8080/ws");
+        ws = new WebSocket(`${protocol}://${window.location.host}/ws`);
+        ws.onopen = function() {
+          if (wsReconnectTimer) {
+            clearTimeout(wsReconnectTimer);
+            wsReconnectTimer = null;
+          }
+        };
         ws.onmessage = function(event) {
           try {
             const payload = JSON.parse(event.data);
@@ -2489,29 +2858,71 @@
           }
         };
         ws.onclose = function() {
-          console.log("WebSocket connection closed, attempting to reconnect...");
-          setTimeout(connectWebSocket, 3000);
+          if (currentUser) {
+            console.log("WebSocket closed, reconnecting...");
+            wsReconnectTimer = setTimeout(() => connectWebSocket(true), 3000);
+          }
         };
         ws.onerror = function(error) {
           console.error("WebSocket error:", error);
         };
       } catch (error) {
         console.error("Failed to connect WebSocket:", error);
-        setTimeout(connectWebSocket, 3000);
+        if (currentUser) {
+          wsReconnectTimer = setTimeout(() => connectWebSocket(true), 3000);
+        }
+      }
+    }
+    
+    function disconnectWebSocket() {
+      if (wsReconnectTimer) {
+        clearTimeout(wsReconnectTimer);
+        wsReconnectTimer = null;
+      }
+      if (ws) {
+        ws.onclose = null;
+        try {
+          ws.close();
+        } catch (error) {
+          console.error("Error closing WebSocket:", error);
+        }
+        ws = null;
       }
     }
     
     // Dodaj obsługę błędów dla fetch
     async function safeFetch(url, options = {}) {
       try {
-        const response = await fetch(url, options);
+        const finalOptions = { credentials: 'include', ...options };
+        const response = await fetch(url, finalOptions);
+        if (response.status === 401) {
+          currentUser = null;
+          updateUserInfoUI();
+          updateRoleVisibility();
+          disconnectWebSocket();
+          showLoginOverlay("Sesja wygasła. Zaloguj się ponownie.");
+          throw new Error("Unauthorized");
+        }
+        if (response.status === 403) {
+          alert("Brak uprawnień do wykonania tej operacji.");
+          throw new Error("Forbidden");
+        }
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          let details = "";
+          try {
+            const data = await response.json();
+            details = data.error || data.message || response.statusText;
+          } catch {
+            details = response.statusText;
+          }
+          throw new Error(`HTTP ${response.status}: ${details}`);
         }
         return response;
       } catch (error) {
         console.error("Fetch error:", error);
-        alert(`Błąd połączenia: ${error.message}`);
+        if (error.message !== "Unauthorized" && error.message !== "Forbidden") {
+          alert(`Błąd połączenia: ${error.message}`);
+        }
         throw error;
       }
     }
@@ -2552,9 +2963,8 @@
       }
     });
     
-    connectWebSocket();
     renderMetricsSummary();
-    Promise.all([fetchProjects(), fetchTasks()]);
+    initializeApp();
 
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {

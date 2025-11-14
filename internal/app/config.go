@@ -1,9 +1,12 @@
 package app
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 // stałe konfiguracyjne
@@ -12,6 +15,8 @@ const (
 	DefaultHost    = "localhost"
 	ProjectsFile   = "data_projects.json"
 	TasksFile      = "data_tasks.json"
+	UsersFile      = "data_users.json"
+	StaticDir      = "."
 	MaxProjectName = 100
 	MaxTaskTitle   = 200
 	MaxDescription = 1000
@@ -21,20 +26,28 @@ const (
 
 // Config przechowuje ustawienia aplikacji.
 type Config struct {
-	Port         string
-	Host         string
-	ProjectsFile string
-	TasksFile    string
+	Port          string
+	Host          string
+	ProjectsFile  string
+	TasksFile     string
+	UsersFile     string
+	StaticDir     string
+	SessionSecret string
 }
 
-var currentConfig = defaultConfig()
+var (
+	projectRootPath = findProjectRoot()
+	currentConfig   = defaultConfig()
+)
 
 func defaultConfig() *Config {
 	return &Config{
 		Port:         DefaultPort,
 		Host:         DefaultHost,
-		ProjectsFile: ProjectsFile,
-		TasksFile:    TasksFile,
+		ProjectsFile: filepath.Join(projectRootPath, ProjectsFile),
+		TasksFile:    filepath.Join(projectRootPath, TasksFile),
+		UsersFile:    filepath.Join(projectRootPath, UsersFile),
+		StaticDir:    filepath.Join(projectRootPath, StaticDir),
 	}
 }
 
@@ -67,11 +80,23 @@ func LoadConfigFromEnv() *Config {
 	}
 
 	if projectsFile := os.Getenv("PROJECTS_FILE"); projectsFile != "" {
-		cfg.ProjectsFile = projectsFile
+		cfg.ProjectsFile = resolvePath(projectsFile)
 	}
 
 	if tasksFile := os.Getenv("TASKS_FILE"); tasksFile != "" {
-		cfg.TasksFile = tasksFile
+		cfg.TasksFile = resolvePath(tasksFile)
+	}
+
+	if usersFile := os.Getenv("USERS_FILE"); usersFile != "" {
+		cfg.UsersFile = resolvePath(usersFile)
+	}
+
+	if staticDir := os.Getenv("STATIC_DIR"); staticDir != "" {
+		cfg.StaticDir = resolvePath(staticDir)
+	}
+
+	if secret := os.Getenv("SESSION_SECRET"); secret != "" {
+		cfg.SessionSecret = secret
 	}
 
 	return cfg
@@ -84,6 +109,8 @@ func PrintConfig(cfg *Config) {
 	log.Printf("  Host: %s", cfg.Host)
 	log.Printf("  Plik projektów: %s", cfg.ProjectsFile)
 	log.Printf("  Plik zadań: %s", cfg.TasksFile)
+	log.Printf("  Plik użytkowników: %s", cfg.UsersFile)
+	log.Printf("  Katalog statyczny: %s", cfg.StaticDir)
 }
 
 // ValidateConfig sprawdza poprawność konfiguracji.
@@ -94,5 +121,55 @@ func ValidateConfig(cfg *Config) error {
 	if cfg.Host == "" {
 		return fmt.Errorf("host cannot be empty")
 	}
+	if cfg.UsersFile == "" {
+		return fmt.Errorf("users file cannot be empty")
+	}
+	if cfg.StaticDir == "" {
+		return fmt.Errorf("static dir cannot be empty")
+	}
+	if cfg.SessionSecret == "" {
+		secret, err := generateRandomSecret()
+		if err != nil {
+			return fmt.Errorf("session secret cannot be empty and random generation failed: %v", err)
+		}
+		cfg.SessionSecret = secret
+		log.Println("SESSION_SECRET not provided. Generated ephemeral secret for this run.")
+	}
 	return nil
+}
+
+func generateRandomSecret() (string, error) {
+	bytes := make([]byte, 32)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(bytes), nil
+}
+
+func resolvePath(p string) string {
+	if p == "" {
+		return ""
+	}
+	if filepath.IsAbs(p) {
+		return p
+	}
+	return filepath.Join(projectRootPath, p)
+}
+
+func findProjectRoot() string {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "."
+	}
+	for {
+		if _, err := os.Stat(filepath.Join(cwd, "go.mod")); err == nil {
+			return cwd
+		}
+		parent := filepath.Dir(cwd)
+		if parent == cwd {
+			break
+		}
+		cwd = parent
+	}
+	return cwd
 }

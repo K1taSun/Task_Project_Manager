@@ -16,6 +16,7 @@
 - **WebSocket** – push powiadomień o zmianach do otwartych kart
 - **Motyw jasny/ciemny** oraz responsywny interfejs przygotowany na urządzenia mobilne
 - **Zaawansowane metryki** – dashboard z podsumowaniami, wykresami priorytetów, przepływu pracy i obciążenia wykonawców
+- **Autoryzacja i role** – logowanie z użyciem ciasteczek HttpOnly, role `admin`/`manager`/`viewer`, zarządzanie użytkownikami
 
 ---
 
@@ -54,6 +55,7 @@
 ├── index.html             # jedyny plik frontendu
 ├── data_projects.json     # bieżące dane projektów (generowane przy starcie)
 ├── data_tasks.json        # bieżące dane zadań (generowane przy starcie)
+├── data_users.json        # bieżące dane użytkowników (tworzone automatycznie)
 ├── go.mod / go.sum        # moduł Go
 └── README.md
 ```
@@ -93,9 +95,29 @@
    ```
    Domyślnie backend nasłuchuje na `localhost:8080`. Zmienne środowiskowe (`HOST`, `PORT`, `PROJECTS_FILE`, `TASKS_FILE`) pozwalają nadpisać konfigurację.
 4. **Frontend:** otwórz w przeglądarce `http://localhost:8080`.
-5. **Dashboard metryk:** kliknij ikonę wykresu w górnym pasku, aby zobaczyć podsumowania i wykresy (Chart.js jest ładowany z CDN).
+5. **Logowanie:** przy pierwszym uruchomieniu tworzony jest użytkownik `admin@example.com` z hasłem `admin123`. Zmień je od razu po zalogowaniu.
+6. **Dashboard metryk:** kliknij ikonę wykresu w górnym pasku, aby zobaczyć podsumowania i wykresy (Chart.js jest ładowany z CDN).
 
-> Pliki `data_projects.json` oraz `data_tasks.json` są wykluczone z repozytorium (zapisują bieżący stan). Jeśli zaczynasz od pustej instalacji, aplikacja sama utworzy te pliki przy pierwszym uruchomieniu.
+> Pliki `data_projects.json`, `data_tasks.json` oraz `data_users.json` są wykluczone z repozytorium (zapisują bieżący stan). Jeśli zaczynasz od pustej instalacji, aplikacja sama utworzy te pliki przy pierwszym uruchomieniu.
+
+---
+
+## Uwierzytelnianie i role
+
+- Sesje trzymane są w pamięci serwera i identyfikowane ciasteczkiem `session_token` (HttpOnly, Lax).
+- API:
+  - `POST /auth/login` – logowanie (JSON: `email`, `password`)
+  - `POST /auth/logout` – wylogowanie
+  - `GET /auth/me` – informacja o aktualnym użytkowniku
+  - `GET /users` – lista użytkowników (tylko `admin`)
+  - `POST /users` – tworzenie użytkownika (tylko `admin`)
+  - `PUT /users/{id}` / `DELETE /users/{id}` – zmiana/usuń (tylko `admin`)
+- Role:
+  - `admin` – pełny dostęp do danych i zarządzania kontami
+  - `manager` – zarządzanie projektami i zadaniami
+  - `viewer` – dostęp tylko do odczytu (UI ukrywa akcje modyfikujące)
+
+Frontend wykrywa rolę po zalogowaniu i ukrywa akcje wymagające uprawnień; próba wykonania niedozwolonej operacji zakończy się błędem 403 z backendu.
 
 ---
 
@@ -121,6 +143,8 @@ Dane są odświeżane automatycznie przy zmianach (REST + WebSocket). Tryb ciemn
 | `PORT`           | `8080`                 | Port nasłuchu HTTP                                 |
 | `PROJECTS_FILE`  | `data_projects.json`   | Ścieżka do pliku z projektami                      |
 | `TASKS_FILE`     | `data_tasks.json`      | Ścieżka do pliku z zadaniami                       |
+| `USERS_FILE`     | `data_users.json`      | Ścieżka do pliku z użytkownikami                   |
+| `SESSION_SECRET` | losowo generowany      | Sekret wykorzystywany do zabezpieczenia sesji      |
 
 Pliki z danymi tworzą się automatycznie. Jeśli chcesz zacząć od pustej bazy, ustaw w nich `[]` lub wskaż inne lokalizacje.
 
@@ -166,7 +190,7 @@ Pliki `data_projects.json` i `data_tasks.json` są generowane automatycznie przy
 ## TODO / pomysły na rozwój
 
 - [ ] Integracja z relacyjną bazą danych (PostgreSQL/SQLite)
-- [ ] Autoryzacja użytkowników i role
+- [x] Autoryzacja użytkowników i role
 - [x] Zaawansowane metryki oraz dashboard
 - [ ] Powiadomienia e-mail / webhooki
 - [ ] Testy jednostkowe i automatyczna walidacja linterem/go vet

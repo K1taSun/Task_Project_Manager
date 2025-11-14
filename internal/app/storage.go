@@ -97,3 +97,49 @@ func SaveTasks() error {
 	}
 	return os.WriteFile(GetCurrentConfig().TasksFile, data, 0o644)
 }
+
+func LoadUsers() error {
+	usersFile := GetCurrentConfig().UsersFile
+	file, err := os.Open(usersFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			log.Println("Plik użytkowników nie istnieje, tworzę nowy")
+			return SaveUsers()
+		}
+		return err
+	}
+	defer file.Close()
+
+	var list []User
+	if err := json.NewDecoder(file).Decode(&list); err != nil {
+		return err
+	}
+
+	userMutex.Lock()
+	defer userMutex.Unlock()
+	users = make(map[int]User)
+	maxID := 0
+	for _, u := range list {
+		users[u.ID] = u
+		if u.ID > maxID {
+			maxID = u.ID
+		}
+	}
+	nextUserID = maxID + 1
+	return nil
+}
+
+func SaveUsers() error {
+	userMutex.RLock()
+	var list []User
+	for _, u := range users {
+		list = append(list, u)
+	}
+	userMutex.RUnlock()
+
+	data, err := json.MarshalIndent(list, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(GetCurrentConfig().UsersFile, data, 0o644)
+}
