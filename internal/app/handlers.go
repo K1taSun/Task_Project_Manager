@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // RegisterRoutes dodaje wszystkie endpointy HTTP aplikacji do przekazanego muxa.
@@ -20,20 +22,28 @@ func RegisterRoutes(mux *http.ServeMux) {
 		mux = http.DefaultServeMux
 	}
 
-	mux.HandleFunc("/projects", withCORS(logMiddleware(projectsHandler)))
-	mux.HandleFunc("/projects/", withCORS(logMiddleware(projectHandler)))
-	mux.HandleFunc("/tasks", withCORS(logMiddleware(tasksHandler)))
-	mux.HandleFunc("/tasks/", withCORS(logMiddleware(taskHandler)))
-	mux.HandleFunc("/export", withCORS(logMiddleware(exportHandler)))
-	mux.HandleFunc("/badges", withCORS(logMiddleware(badgesHandler)))
-	mux.HandleFunc("/metrics", withCORS(logMiddleware(metricsHandler)))
-	mux.HandleFunc("/ws", logMiddleware(wsHandler))
+	mux.HandleFunc("/auth/login", withCORS(logMiddleware(loginHandler)))
+	mux.HandleFunc("/auth/logout", withCORS(logMiddleware(requireAuth(logoutHandler))))
+	mux.HandleFunc("/auth/me", withCORS(logMiddleware(requireAuth(currentUserHandler))))
+
+	mux.HandleFunc("/users", withCORS(logMiddleware(requireRole("admin", usersHandler))))
+	mux.HandleFunc("/users/", withCORS(logMiddleware(requireRole("admin", userHandler))))
+
+	mux.HandleFunc("/projects", withCORS(logMiddleware(requireAuth(projectsHandler))))
+	mux.HandleFunc("/projects/", withCORS(logMiddleware(requireAuth(projectHandler))))
+	mux.HandleFunc("/tasks", withCORS(logMiddleware(requireAuth(tasksHandler))))
+	mux.HandleFunc("/tasks/", withCORS(logMiddleware(requireAuth(taskHandler))))
+	mux.HandleFunc("/export", withCORS(logMiddleware(requireAuth(exportHandler))))
+	mux.HandleFunc("/badges", withCORS(logMiddleware(requireAuth(badgesHandler))))
+	mux.HandleFunc("/metrics", withCORS(logMiddleware(requireAuth(metricsHandler))))
+	mux.HandleFunc("/ws", logMiddleware(requireAuth(wsHandler)))
 	mux.HandleFunc("/", logMiddleware(serveIndex))
 }
 
 func serveIndex(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/" {
-		http.ServeFile(w, r, "index.html")
+		indexPath := filepath.Join(GetCurrentConfig().StaticDir, "index.html")
+		http.ServeFile(w, r, indexPath)
 		return
 	}
 	http.NotFound(w, r)
@@ -69,6 +79,9 @@ func projectsHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(list)
 	case http.MethodPost:
+		if !ensureRole(w, r, "manager") {
+			return
+		}
 		var p Project
 		if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
 			writeJSONError(w, http.StatusBadRequest, "Invalid JSON")
@@ -146,6 +159,9 @@ func projectHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(p)
 	case http.MethodPut:
+		if !ensureRole(w, r, "manager") {
+			return
+		}
 		var updatedProject Project
 		if err := json.NewDecoder(r.Body).Decode(&updatedProject); err != nil {
 			writeJSONError(w, http.StatusBadRequest, "Invalid JSON")
@@ -174,6 +190,9 @@ func projectHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(updatedProject)
 	case http.MethodDelete:
+		if !ensureRole(w, r, "manager") {
+			return
+		}
 		mutex.Lock()
 		delete(projects, id)
 		mutex.Unlock()
@@ -290,6 +309,9 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		json.NewEncoder(w).Encode(filtered)
 	case http.MethodPost:
+		if !ensureRole(w, r, "manager") {
+			return
+		}
 		var payload taskPayload
 		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 			writeJSONError(w, http.StatusBadRequest, "Invalid JSON")
@@ -365,6 +387,9 @@ func projectTasksHandler(w http.ResponseWriter, r *http.Request, projectID int) 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(list)
 	case http.MethodPost:
+		if !ensureRole(w, r, "manager") {
+			return
+		}
 		var payload taskPayload
 		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 			writeJSONError(w, http.StatusBadRequest, "Invalid JSON")
@@ -426,6 +451,9 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(t)
 	case http.MethodPut:
+		if !ensureRole(w, r, "manager") {
+			return
+		}
 		var payload taskPayload
 		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 			writeJSONError(w, http.StatusBadRequest, "Invalid JSON")
@@ -491,6 +519,9 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(updated)
 	case http.MethodDelete:
+		if !ensureRole(w, r, "manager") {
+			return
+		}
 		mutex.Lock()
 		delete(tasks, id)
 		mutex.Unlock()
@@ -597,6 +628,204 @@ func badgesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSONError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	var payload struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		writeJSONError(w, http.StatusBadRequest, "Invalid JSON")
+		return
+	}
+
+	user, err := AuthenticateUser(payload.Email, payload.Password)
+	if err != nil {
+		writeJSONError(w, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	token, err := createSession(user.ID)
+	if err != nil {
+		writeJSONError(w, http.StatusInternalServerError, "Nie udało się utworzyć sesji")
+		return
+	}
+
+	setSessionCookie(w, token)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(sanitizeUser(*user))
+}
+
+func logoutHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSONError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	cookie, err := r.Cookie(sessionCookieName)
+	if err == nil {
+		deleteSession(cookie.Value)
+	}
+	clearSessionCookie(w)
+	writeJSONMessage(w, http.StatusOK, "Wylogowano")
+}
+
+func currentUserHandler(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r)
+	if user == nil {
+		writeJSONError(w, http.StatusUnauthorized, "Brak użytkownika")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(sanitizeUser(*user))
+}
+
+func usersHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(GetAllUsers())
+	case http.MethodPost:
+		var payload struct {
+			Email    string `json:"email"`
+			Name     string `json:"name"`
+			Password string `json:"password"`
+			Role     string `json:"role"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			writeJSONError(w, http.StatusBadRequest, "Invalid JSON")
+			return
+		}
+		if payload.Role == "" {
+			payload.Role = "viewer"
+		}
+
+		user, err := CreateUser(payload.Email, payload.Name, payload.Password, payload.Role)
+		if err != nil {
+			writeJSONError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(sanitizeUser(user))
+	default:
+		writeJSONError(w, http.StatusMethodNotAllowed, "Method not allowed")
+	}
+}
+
+func userHandler(w http.ResponseWriter, r *http.Request) {
+	trimmed := strings.TrimPrefix(r.URL.Path, "/users/")
+	id, err := strconv.Atoi(trimmed)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, "Invalid user ID")
+		return
+	}
+
+	switch r.Method {
+	case http.MethodPut:
+		var payload struct {
+			Name     *string `json:"name"`
+			Role     *string `json:"role"`
+			Password *string `json:"password"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			writeJSONError(w, http.StatusBadRequest, "Invalid JSON")
+			return
+		}
+
+		userMutex.Lock()
+		user, ok := users[id]
+		if !ok {
+			userMutex.Unlock()
+			writeJSONError(w, http.StatusNotFound, "User not found")
+			return
+		}
+		logoutRequired := false
+
+		if payload.Name != nil {
+			user.Name = *payload.Name
+		}
+
+		if payload.Role != nil {
+			role := strings.ToLower(strings.TrimSpace(*payload.Role))
+			if !isValidRole(role) {
+				userMutex.Unlock()
+				writeJSONError(w, http.StatusBadRequest, "Niepoprawna rola")
+				return
+			}
+			if user.Role == "admin" && role != "admin" && !hasAnotherAdmin(user.ID) {
+				userMutex.Unlock()
+				writeJSONError(w, http.StatusBadRequest, "Nie można zdegradować ostatniego administratora")
+				return
+			}
+			user.Role = role
+			logoutRequired = true
+		}
+
+		if payload.Password != nil && *payload.Password != "" {
+			hash, err := bcrypt.GenerateFromPassword([]byte(*payload.Password), bcrypt.DefaultCost)
+			if err != nil {
+				userMutex.Unlock()
+				writeJSONError(w, http.StatusInternalServerError, "Nie udało się zaktualizować hasła")
+				return
+			}
+			user.PasswordHash = string(hash)
+			logoutRequired = true
+		}
+
+		user.UpdatedAt = time.Now()
+		users[id] = user
+		userMutex.Unlock()
+
+		if logoutRequired {
+			deleteSessionsForUser(id)
+		}
+
+		if err := SaveUsers(); err != nil {
+			writeJSONError(w, http.StatusInternalServerError, "Nie udało się zapisać użytkownika")
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(sanitizeUser(user))
+	case http.MethodDelete:
+		requester := GetUserFromContext(r)
+		if requester != nil && requester.ID == id {
+			writeJSONError(w, http.StatusBadRequest, "Nie możesz usunąć własnego konta")
+			return
+		}
+
+		userMutex.Lock()
+		user, ok := users[id]
+		if !ok {
+			userMutex.Unlock()
+			writeJSONError(w, http.StatusNotFound, "User not found")
+			return
+		}
+		if user.Role == "admin" && !hasAnotherAdmin(user.ID) {
+			userMutex.Unlock()
+			writeJSONError(w, http.StatusBadRequest, "Nie można usunąć ostatniego administratora")
+			return
+		}
+		delete(users, id)
+		userMutex.Unlock()
+
+		deleteSessionsForUser(id)
+
+		if err := SaveUsers(); err != nil {
+			writeJSONError(w, http.StatusInternalServerError, "Nie udało się usunąć użytkownika")
+			return
+		}
+		writeJSONMessage(w, http.StatusOK, "Użytkownik został usunięty")
+	default:
+		writeJSONError(w, http.StatusMethodNotAllowed, "Method not allowed")
+	}
+}
 func wsHandler(w http.ResponseWriter, r *http.Request) {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
@@ -716,4 +945,17 @@ func broadcastChange() {
 			log.Printf("Error sending WebSocket message: %v", err)
 		}
 	}
+}
+
+func ensureRole(w http.ResponseWriter, r *http.Request, minRole string) bool {
+	user := GetUserFromContext(r)
+	if user == nil {
+		writeJSONError(w, http.StatusUnauthorized, "Wymagane logowanie")
+		return false
+	}
+	if !hasRoleOrHigher(user.Role, minRole) {
+		writeJSONError(w, http.StatusForbidden, "Brak uprawnień")
+		return false
+	}
+	return true
 }

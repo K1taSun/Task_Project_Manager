@@ -10,3 +10,4 @@ tmp/
 *.env
 data_projects.json
 data_tasks.json
+data_users.json

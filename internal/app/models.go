@@ -44,12 +44,26 @@ type Badge struct {
 	Type       string `json:"type"`
 }
 
+// User reprezentuje użytkownika systemu.
+type User struct {
+	ID           int       `json:"id"`
+	Email        string    `json:"email"`
+	Name         string    `json:"name"`
+	PasswordHash string    `json:"password_hash"`
+	Role         string    `json:"role"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+}
+
 var (
 	projects      = make(map[int]Project)
 	tasks         = make(map[int]Task)
 	mutex         sync.RWMutex
 	nextProjectID = 1
 	nextTaskID    = 1
+	users         = make(map[int]User)
+	userMutex     sync.RWMutex
+	nextUserID    = 1
 )
 
 func generateProjectID() int {
@@ -65,6 +79,12 @@ func generateTaskID() int {
 	defer mutex.Unlock()
 	id := nextTaskID
 	nextTaskID++
+	return id
+}
+
+func generateUserID() int {
+	id := nextUserID
+	nextUserID++
 	return id
 }
 

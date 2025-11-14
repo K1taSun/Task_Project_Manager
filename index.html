@@ -120,6 +120,464 @@
       max-height: 88vh;
       overflow-y: auto;
     }
+    .users-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+      z-index: 250;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .users-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .users-content {
+      width: min(860px, 94vw);
+      background: var(--card);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding: 26px;
+      max-height: 90vh;
+      overflow: hidden;
+    }
+    .users-content header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .users-content header h2 {
+      margin: 0;
+      font-size: 1.35em;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .users-close {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 1.6em;
+      cursor: pointer;
+      border-radius: 10px;
+      padding: 6px 8px;
+      transition: background var(--transition);
+    }
+    .users-close:hover {
+      background: rgba(148, 163, 184, 0.2);
+    }
+    .users-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 20px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      position: relative;
+      overflow: visible;
+    }
+    .users-form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    .users-form-row.full {
+      grid-template-columns: 1fr;
+    }
+    .users-form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      min-width: 0;
+    }
+    .users-form label {
+      font-size: 0.9em;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .users-form label .material-icons {
+      font-size: 1.1em;
+      color: #64748b;
+      display: inline-flex;
+      align-items: center;
+      line-height: 1;
+    }
+    .users-form input,
+    .users-form select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-size: 0.95em;
+      transition: all var(--transition);
+      box-sizing: border-box;
+      position: relative;
+      z-index: 1;
+    }
+    .users-form select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 18px;
+      padding-right: 40px;
+      cursor: pointer;
+      overflow: visible;
+    }
+    .users-form input:focus,
+    .users-form select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      background: var(--card);
+    }
+    .users-form input::placeholder {
+      color: #94a3b8;
+    }
+    .users-form button[type="submit"] {
+      align-self: flex-end;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.95em;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .users-form button[type="button"] {
+      background: var(--border);
+      color: var(--text);
+      border: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .users-form button[type="button"]:hover {
+      background: rgba(148, 163, 184, 0.3);
+    }
+    .users-form button[type="submit"]:hover {
+      background: var(--primary-dark);
+      box-shadow: 0 12px 28px rgba(37, 99, 235, 0.25);
+    }
+    .users-message {
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 0.9em;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+    }
+    .users-message.error {
+      color: #dc2626;
+      background: rgba(220, 38, 38, 0.1);
+      border: 1px solid rgba(220, 38, 38, 0.2);
+    }
+    .users-message.error::before {
+      content: 'error';
+      font-family: 'Material Icons';
+      font-size: 1.2em;
+    }
+    .users-message.success {
+      color: #16a34a;
+      background: rgba(22, 163, 74, 0.1);
+      border: 1px solid rgba(22, 163, 74, 0.2);
+    }
+    .users-message.success::before {
+      content: 'check_circle';
+      font-family: 'Material Icons';
+      font-size: 1.2em;
+    }
+    .users-table-wrapper {
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+    .users-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9em;
+    }
+    .users-table thead {
+      background: rgba(37, 99, 235, 0.08);
+      text-transform: uppercase;
+      font-size: 0.75em;
+      letter-spacing: 0.04em;
+      color: #64748b;
+    }
+    .users-table th,
+    .users-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+      text-align: left;
+    }
+    .users-table tbody tr:hover {
+      background: rgba(37, 99, 235, 0.08);
+    }
+    .users-table td.actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .users-table td.actions button {
+      border: none;
+      background: none;
+      color: var(--primary);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 8px;
+      transition: background var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.9em;
+    }
+    .users-table td.actions button:hover {
+      background: rgba(37, 99, 235, 0.15);
+    }
+    .users-empty {
+      padding: 28px;
+      text-align: center;
+      color: #94a3b8;
+      font-style: italic;
+    }
+    .users-search {
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      font-size: 0.95em;
+      width: 100%;
+      color: var(--text);
+      transition: border var(--transition), box-shadow var(--transition);
+    }
+    .users-search:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    .users-search-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .users-search-wrapper .material-icons {
+      position: absolute;
+      left: 12px;
+      color: #94a3b8;
+      pointer-events: none;
+    }
+    .users-search-wrapper input {
+      padding-left: 40px;
+    }
+    .role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.75em;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .role-badge.admin {
+      background: rgba(220, 38, 38, 0.15);
+      color: #b91c1c;
+    }
+    .role-badge.manager {
+      background: rgba(234, 179, 8, 0.15);
+      color: #b45309;
+    }
+    .role-badge.viewer {
+      background: rgba(59, 130, 246, 0.15);
+      color: #1e40af;
+    }
+    .users-table td.actions button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .users-table td.actions button.danger {
+      color: #dc2626;
+    }
+    .users-table td.actions button.danger:hover {
+      background: rgba(220, 38, 38, 0.15);
+    }
+    .users-table tbody tr.current-user {
+      background: rgba(37, 99, 235, 0.05);
+    }
+    .users-table tbody tr.current-user td {
+      font-weight: 600;
+    }
+    @media (max-width: 768px) {
+      .users-content {
+        padding: 20px 16px;
+      }
+      .users-form {
+        padding: 16px;
+      }
+      .users-form-row {
+        grid-template-columns: 1fr;
+      }
+      .users-form button[type="submit"] {
+        width: 100%;
+        justify-content: center;
+      }
+      .users-table {
+        font-size: 0.85em;
+      }
+      .users-table th,
+      .users-table td {
+        padding: 10px 8px;
+      }
+      .users-table td.actions {
+        flex-direction: column;
+        gap: 4px;
+      }
+      .users-table td.actions button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+    .user-info .role {
+      font-size: 0.75em;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #6366f1;
+    }
+    .user-info button {
+      background: none;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      font-size: 0.9em;
+      padding: 4px 8px;
+      border-radius: 8px;
+      transition: background var(--transition);
+    }
+    .user-info button:hover {
+      background: rgba(37, 99, 235, 0.12);
+    }
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      backdrop-filter: blur(6px);
+      background: rgba(15, 23, 42, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 300;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .auth-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .auth-dialog {
+      width: min(420px, 92vw);
+      background: var(--card);
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.3);
+      padding: 28px 26px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .auth-dialog h2 {
+      margin: 0;
+      font-size: 1.35em;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .auth-dialog label {
+      font-size: 0.9em;
+      font-weight: 500;
+      color: #475569;
+    }
+    .auth-dialog input {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      transition: border var(--transition), box-shadow var(--transition);
+    }
+    .auth-dialog input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+    .auth-dialog button[type="submit"] {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background var(--transition), box-shadow var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .auth-dialog button[type="submit"]:hover {
+      background: var(--primary-dark);
+      box-shadow: 0 16px 36px rgba(37, 99, 235, 0.28);
+    }
+    .auth-error {
+      color: #dc2626;
+      font-size: 0.85em;
+      font-weight: 500;
+      min-height: 18px;
+    }
     .dashboard-header {
       display: flex;
       align-items: center;
@@ -280,6 +738,9 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .navbar .logo .material-icons {
       font-size: 1.4em;
@@ -322,6 +783,11 @@
       padding: 6px 12px;
       border-radius: var(--radius);
       transition: background var(--transition), color var(--transition);
+    }
+    .navbar button:focus-visible,
+    .navbar select:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
     }
     .navbar button:hover, .navbar select:hover {
       background: var(--primary);
@@ -1201,6 +1667,7 @@
       .nav-left { gap: 12px; }
       .overview-btn { width: 40px; height: 40px; border-radius: 12px; }
       .navbar .logo { font-size: 1.2em; }
+      .navbar .logo .logo-text { display: none; }
       .main { padding: 12px 4vw 12px 4vw; }
       .filters {
         flex-direction: column;
@@ -1234,6 +1701,7 @@
       .nav-left { gap: 10px; }
       .overview-btn { width: 38px; height: 38px; }
       .navbar .logo { font-size: 1.1em; }
+      .hide-sm { display: none !important; }
       .main { padding: 8px 3vw 8px 3vw; }
       .sidebar-header, .add-project-btn { margin: 0 12px; }
       .task-card {
@@ -1254,6 +1722,13 @@
       .modal .modal-actions button { 
         padding: 6px 12px; 
         font-size: 0.85em;
+      }
+      .users-content {
+        padding: 20px 18px;
+        width: min(560px, 94vw);
+      }
+      .users-form {
+        grid-template-columns: 1fr;
       }
     }
     @media (max-width: 480px) {
@@ -1350,23 +1825,29 @@
       <button class="overview-btn" onclick="openOverview()" title="Szybki podgląd">
         <span class="material-icons">menu</span>
       </button>
-      <div class="logo"><span class="material-icons">dashboard_customize</span> Menadżer zadań</div>
+      <div class="logo"><span class="material-icons">dashboard_customize</span> <span class="logo-text">Menedżer zadań</span></div>
     </div>
-    <div class="actions">
-      <button onclick="exportData('json')" title="Eksportuj JSON"><span class="material-icons">download</span></button>
-      <button onclick="exportData('csv')" title="Eksportuj CSV"><span class="material-icons">table_view</span></button>
+    <div class="actions" id="navActions">
+      <button class="hide-sm" onclick="exportData('json')" title="Eksportuj JSON"><span class="material-icons">download</span></button>
+      <button class="hide-sm" onclick="exportData('csv')" title="Eksportuj CSV"><span class="material-icons">table_view</span></button>
       <button onclick="openDashboard()" title="Dashboard metryk"><span class="material-icons">analytics</span></button>
+      <button data-role="admin" id="openUsersPanelBtn" onclick="openUsersPanel()" title="Zarządzaj użytkownikami" style="display:none;"><span class="material-icons">group</span></button>
       <button class="theme-btn" onclick="toggleTheme()" title="Zmień motyw"><span class="material-icons">dark_mode</span></button>
+      <div class="user-info" id="userInfo" style="display:none;">
+        <span id="userNameLabel"></span>
+        <span class="role" id="userRoleLabel"></span>
+        <button type="button" onclick="logout()">Wyloguj</button>
+      </div>
     </div>
   </nav>
   <div class="layout">
     <aside class="sidebar">
       <div class="sidebar-header">
         <span>Projekty</span>
-        <button class="material-icons" onclick="showProjectModal()" title="Dodaj projekt">add</button>
+        <button class="material-icons" onclick="showProjectModal()" title="Dodaj projekt" data-role="manager" style="display:none;">add</button>
       </div>
       <div class="sidebar-list" id="projectsList"></div>
-      <button class="add-project-btn" onclick="showProjectModal()">+ Nowy projekt</button>
+      <button class="add-project-btn" onclick="showProjectModal()" data-role="manager" style="display:none;">+ Nowy projekt</button>
     </aside>
     <main class="main">
       <div id="metricsSummary" class="metrics-summary"></div>
@@ -1394,10 +1875,28 @@
       <div class="tasks-list" id="tasksList"></div>
     </main>
   </div>
-  <button class="fab" onclick="showTaskModal()" title="Dodaj zadanie"><span class="material-icons">add</span></button>
+  <button class="fab" onclick="showTaskModal()" title="Dodaj zadanie" style="display:none;"><span class="material-icons">add</span></button>
   <div id="modalRoot"></div>
+  <div id="authOverlay" class="auth-overlay">
+    <form class="auth-dialog" onsubmit="handleLogin(event)">
+      <h2><span class="material-icons">lock</span> Logowanie</h2>
+      <div>
+        <label for="authEmail">Email</label>
+        <input id="authEmail" type="email" autocomplete="email" required>
+      </div>
+      <div>
+        <label for="authPassword">Hasło</label>
+        <input id="authPassword" type="password" autocomplete="current-password" required>
+      </div>
+      <div class="auth-error" id="authError"></div>
+      <button type="submit">
+        <span class="material-icons">login</span> Zaloguj
+      </button>
+    </form>
+  </div>
   <script>
     const API = "http://localhost:8080";
+    let currentUser = null;
     let projects = [];
     let tasks = [];
     let selectedProject = null;
@@ -1407,6 +1906,609 @@
     let metricsData = null;
     let metricsPromise = null;
     const dashboardCharts = {};
+    let usersCache = [];
+    let usersMessage = { type: "", text: "" };
+
+    function canManage() {
+      return currentUser && (currentUser.role === 'manager' || currentUser.role === 'admin');
+    }
+
+    function isAdmin() {
+      return currentUser && currentUser.role === 'admin';
+    }
+
+    function showLoginOverlay(message = "") {
+      const overlay = document.getElementById('authOverlay');
+      if (!overlay) return;
+      overlay.classList.add('open');
+      const errorBox = document.getElementById('authError');
+      if (errorBox) errorBox.textContent = message;
+      setTimeout(() => {
+        const emailField = document.getElementById('authEmail');
+        if (emailField) {
+          emailField.focus();
+          emailField.select();
+        }
+      }, 100);
+    }
+
+    function hideLoginOverlay() {
+      const overlay = document.getElementById('authOverlay');
+      if (!overlay) return;
+      overlay.classList.remove('open');
+      const errorBox = document.getElementById('authError');
+      if (errorBox) errorBox.textContent = "";
+    }
+
+    function updateUserInfoUI() {
+      const infoBox = document.getElementById('userInfo');
+      const nameLabel = document.getElementById('userNameLabel');
+      const roleLabel = document.getElementById('userRoleLabel');
+      if (!infoBox) return;
+      if (!currentUser) {
+        infoBox.style.display = 'none';
+        if (nameLabel) nameLabel.textContent = "";
+        if (roleLabel) roleLabel.textContent = "";
+        return;
+      }
+      infoBox.style.display = 'flex';
+      if (nameLabel) {
+        nameLabel.textContent = currentUser.name || currentUser.email || 'Użytkownik';
+      }
+      if (roleLabel) {
+        roleLabel.textContent = (currentUser.role || '').toUpperCase();
+      }
+    }
+
+    function updateRoleVisibility() {
+      const requiresManager = document.querySelectorAll('[data-role="manager"]');
+      const canManageFlag = canManage();
+      requiresManager.forEach(element => {
+        element.style.display = canManageFlag ? '' : 'none';
+      });
+      const requiresAdmin = document.querySelectorAll('[data-role="admin"]');
+      const isAdminFlag = isAdmin();
+      requiresAdmin.forEach(element => {
+        element.style.display = isAdminFlag ? '' : 'none';
+      });
+      const fab = document.querySelector('.fab');
+      if (fab) {
+        fab.style.display = canManageFlag ? 'flex' : 'none';
+      }
+      if (!isAdminFlag) {
+        closeUsersPanel();
+      }
+    }
+
+    function resetAppState() {
+      projects = [];
+      tasks = [];
+      selectedProject = null;
+      metricsData = null;
+      metricsPromise = null;
+      closeUsersPanel();
+      renderProjects();
+      renderProjectDetails();
+      renderTasks();
+      renderMetricsSummary();
+    }
+
+    async function fetchCurrentUser() {
+      try {
+        const res = await fetch(`${API}/auth/me`, { credentials: 'include' });
+        if (!res.ok) {
+          currentUser = null;
+          updateUserInfoUI();
+          updateRoleVisibility();
+          return false;
+        }
+        currentUser = await res.json();
+        updateUserInfoUI();
+        updateRoleVisibility();
+        return true;
+      } catch (error) {
+        console.error("Failed to fetch current user:", error);
+        return false;
+      }
+    }
+
+    async function initializeApp() {
+      const authenticated = await fetchCurrentUser();
+      if (!authenticated) {
+        disconnectWebSocket();
+        resetAppState();
+        showLoginOverlay();
+        return;
+      }
+      hideLoginOverlay();
+      await Promise.all([fetchProjects(), fetchTasks()]);
+      connectWebSocket();
+    }
+
+    async function handleLogin(event) {
+      event.preventDefault();
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value.trim();
+      const errorBox = document.getElementById('authError');
+      if (!email || !password) {
+        if (errorBox) errorBox.textContent = "Podaj email i hasło.";
+        return;
+      }
+      try {
+        const res = await fetch(`${API}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email, password })
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          if (errorBox) errorBox.textContent = data.error || 'Nieprawidłowy email lub hasło.';
+          return;
+        }
+        currentUser = await res.json();
+        document.getElementById('authPassword').value = "";
+        hideLoginOverlay();
+        updateUserInfoUI();
+        updateRoleVisibility();
+        await Promise.all([fetchProjects(), fetchTasks()]);
+        connectWebSocket(true);
+      } catch (error) {
+        console.error("Login failed:", error);
+        if (errorBox) errorBox.textContent = "Wystąpił błąd logowania. Spróbuj ponownie.";
+      }
+    }
+
+    async function logout() {
+      try {
+        await fetch(`${API}/auth/logout`, {
+          method: 'POST',
+          credentials: 'include'
+        });
+      } catch (error) {
+        console.error("Logout failed:", error);
+      }
+      currentUser = null;
+      updateUserInfoUI();
+      updateRoleVisibility();
+      disconnectWebSocket();
+      closeUsersPanel();
+      resetAppState();
+      showLoginOverlay();
+    }
+
+    function closeUsersPanel() {
+      const overlay = document.getElementById('usersOverlay');
+      if (!overlay) return;
+      overlay.classList.remove('open');
+      setTimeout(() => {
+        if (overlay.parentElement) {
+          overlay.parentElement.removeChild(overlay);
+        }
+      }, 180);
+      usersCache = [];
+      usersMessage = { type: "", text: "" };
+      usersSearchQuery = '';
+      editingUserId = null;
+    }
+
+    async function fetchUsersList() {
+      if (!isAdmin()) return;
+      try {
+        const res = await safeFetch(`${API}/users`);
+        usersCache = await res.json();
+      } catch (error) {
+        console.error("Failed to fetch users:", error);
+        usersMessage = { type: "error", text: error.message || "Nie udało się pobrać użytkowników." };
+      }
+    }
+
+    let usersSearchQuery = '';
+    let editingUserId = null;
+
+    function renderUsersPanel() {
+      const overlay = document.getElementById('usersOverlay');
+      if (!overlay) return;
+      const messageClass = usersMessage.type ? ` ${usersMessage.type}` : '';
+      
+      const filteredUsers = usersCache.filter(user => {
+        if (!usersSearchQuery) return true;
+        const query = usersSearchQuery.toLowerCase();
+        return (user.name && user.name.toLowerCase().includes(query)) ||
+               (user.email && user.email.toLowerCase().includes(query)) ||
+               (user.role && user.role.toLowerCase().includes(query));
+      });
+
+      const rows = filteredUsers.length ? filteredUsers.map(user => {
+        const role = user.role || 'viewer';
+        const isCurrent = currentUser && user.id === currentUser.id;
+        const createdAt = user.created_at ? new Date(user.created_at).toLocaleDateString('pl-PL', { 
+          day: '2-digit', 
+          month: 'short', 
+          year: 'numeric' 
+        }) : '—';
+        const rowClass = isCurrent ? 'current-user' : '';
+        return `
+          <tr class="${rowClass}">
+            <td><strong>${user.name || '—'}</strong></td>
+            <td>${user.email || '—'}</td>
+            <td><span class="role-badge ${role}">${role}</span></td>
+            <td>${createdAt}</td>
+            <td class="actions">
+              <button type="button" data-user-edit="${user.id}" title="Edytuj użytkownika">
+                <span class="material-icons">edit</span> Edytuj
+              </button>
+              <button type="button" class="danger" data-user-delete="${user.id}" ${isCurrent ? 'disabled' : ''} title="${isCurrent ? 'Nie możesz usunąć własnego konta' : 'Usuń użytkownika'}">
+                <span class="material-icons">delete</span> ${isCurrent ? 'Twoje konto' : 'Usuń'}
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('') : `
+        <tr><td colspan="5" class="users-empty">${usersSearchQuery ? 'Brak wyników wyszukiwania' : 'Brak użytkowników'}</td></tr>
+      `;
+      const isEditing = editingUserId !== null;
+      const editingUser = isEditing ? usersCache.find(u => u.id === editingUserId) : null;
+      
+      overlay.innerHTML = `
+        <div class="users-content">
+          <header>
+            <h2><span class="material-icons">group</span> Użytkownicy</h2>
+            <button class="users-close" type="button" id="usersCloseBtn" aria-label="Zamknij"><span class="material-icons">close</span></button>
+          </header>
+          <div class="users-search-wrapper">
+            <span class="material-icons">search</span>
+            <input 
+              type="search" 
+              class="users-search" 
+              id="usersSearchInput" 
+              placeholder="Szukaj użytkowników..." 
+              value="${usersSearchQuery}"
+            >
+          </div>
+          <form id="usersAddForm" class="users-form" style="${isEditing ? 'display: none;' : ''}">
+            <div class="users-form-row">
+              <div class="users-form-field">
+                <label for="newUserEmail">
+                  <span class="material-icons">email</span>
+                  Email
+                </label>
+                <input 
+                  id="newUserEmail" 
+                  name="email" 
+                  type="email" 
+                  placeholder="uzytkownik@example.com"
+                  autocomplete="off" 
+                  required
+                >
+              </div>
+              <div class="users-form-field">
+                <label for="newUserName">
+                  <span class="material-icons">person</span>
+                  Imię
+                </label>
+                <input 
+                  id="newUserName" 
+                  name="name" 
+                  type="text" 
+                  placeholder="Jan Kowalski"
+                  autocomplete="off"
+                >
+              </div>
+            </div>
+            <div class="users-form-row">
+              <div class="users-form-field">
+                <label for="newUserPassword">
+                  <span class="material-icons">lock</span>
+                  Hasło
+                </label>
+                <input 
+                  id="newUserPassword" 
+                  name="password" 
+                  type="password" 
+                  placeholder="••••••••"
+                  autocomplete="new-password" 
+                  required
+                >
+              </div>
+              <div class="users-form-field">
+                <label for="newUserRole">
+                  <span class="material-icons">badge</span>
+                  Rola
+                </label>
+                <select id="newUserRole" name="role">
+                  <option value="viewer">Viewer</option>
+                  <option value="manager">Manager</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+            </div>
+            <div class="users-message${messageClass}" id="usersMessageBox"></div>
+            <button type="submit">
+              <span class="material-icons">person_add</span>
+              Dodaj użytkownika
+            </button>
+          </form>
+          <form id="usersEditForm" class="users-form" style="${!isEditing ? 'display: none;' : ''}">
+            <div class="users-form-row">
+              <div class="users-form-field">
+                <label for="editUserEmail">
+                  <span class="material-icons">email</span>
+                  Email
+                </label>
+                <input 
+                  id="editUserEmail" 
+                  name="email" 
+                  type="email" 
+                  value="${editingUser ? editingUser.email : ''}" 
+                  disabled
+                  style="opacity: 0.6; cursor: not-allowed;"
+                >
+              </div>
+              <div class="users-form-field">
+                <label for="editUserName">
+                  <span class="material-icons">person</span>
+                  Imię
+                </label>
+                <input 
+                  id="editUserName" 
+                  name="name" 
+                  type="text" 
+                  value="${editingUser ? editingUser.name : ''}" 
+                  placeholder="Jan Kowalski"
+                  autocomplete="off"
+                >
+              </div>
+            </div>
+            <div class="users-form-row">
+              <div class="users-form-field">
+                <label for="editUserPassword">
+                  <span class="material-icons">lock</span>
+                  Nowe hasło
+                </label>
+                <input 
+                  id="editUserPassword" 
+                  name="password" 
+                  type="password" 
+                  placeholder="Pozostaw puste, aby nie zmieniać"
+                  autocomplete="new-password"
+                >
+              </div>
+              <div class="users-form-field">
+                <label for="editUserRole">
+                  <span class="material-icons">badge</span>
+                  Rola
+                </label>
+                <select id="editUserRole" name="role">
+                  <option value="viewer" ${editingUser && editingUser.role === 'viewer' ? 'selected' : ''}>Viewer</option>
+                  <option value="manager" ${editingUser && editingUser.role === 'manager' ? 'selected' : ''}>Manager</option>
+                  <option value="admin" ${editingUser && editingUser.role === 'admin' ? 'selected' : ''}>Admin</option>
+                </select>
+              </div>
+            </div>
+            <div class="users-message${messageClass}" id="usersEditMessageBox"></div>
+            <div style="display: flex; gap: 12px; align-self: flex-end; margin-top: 4px;">
+              <button type="button" onclick="cancelEditUser()">
+                <span class="material-icons">close</span> Anuluj
+              </button>
+              <button type="submit">
+                <span class="material-icons">save</span> Zapisz zmiany
+              </button>
+            </div>
+          </form>
+          <div class="users-table-wrapper">
+            <table class="users-table">
+              <thead>
+                <tr>
+                  <th>Imię</th>
+                  <th>Email</th>
+                  <th>Rola</th>
+                  <th>Utworzono</th>
+                  <th>Akcje</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      const closeBtn = document.getElementById('usersCloseBtn');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', closeUsersPanel);
+      }
+      const messageBox = document.getElementById('usersMessageBox');
+      if (messageBox) {
+        messageBox.textContent = usersMessage.text || '';
+      }
+      const editMessageBox = document.getElementById('usersEditMessageBox');
+      if (editMessageBox) {
+        editMessageBox.textContent = usersMessage.text || '';
+      }
+      const searchInput = document.getElementById('usersSearchInput');
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          usersSearchQuery = e.target.value;
+          renderUsersPanel();
+        });
+      }
+      const form = document.getElementById('usersAddForm');
+      if (form) {
+        form.addEventListener('submit', handleCreateUser);
+      }
+      const editForm = document.getElementById('usersEditForm');
+      if (editForm) {
+        editForm.addEventListener('submit', handleEditUser);
+      }
+      overlay.querySelectorAll('[data-user-delete]').forEach(button => {
+        const userId = parseInt(button.getAttribute('data-user-delete'), 10);
+        if (!Number.isNaN(userId)) {
+          button.addEventListener('click', () => handleDeleteUser(userId));
+        }
+      });
+      overlay.querySelectorAll('[data-user-edit]').forEach(button => {
+        const userId = parseInt(button.getAttribute('data-user-edit'), 10);
+        if (!Number.isNaN(userId)) {
+          button.addEventListener('click', () => startEditUser(userId));
+        }
+      });
+    }
+
+    async function openUsersPanel() {
+      if (!isAdmin()) {
+        alert("Tylko administrator może zarządzać użytkownikami.");
+        return;
+      }
+      usersMessage = { type: "", text: "" };
+      usersSearchQuery = '';
+      editingUserId = null;
+      const root = document.getElementById('modalRoot');
+      let overlay = document.getElementById('usersOverlay');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'usersOverlay';
+        overlay.className = 'users-overlay';
+        overlay.addEventListener('click', (event) => {
+          if (event.target === overlay) {
+            closeUsersPanel();
+          }
+        });
+        root.appendChild(overlay);
+        requestAnimationFrame(() => overlay.classList.add('open'));
+      }
+      overlay.innerHTML = `
+        <div class="users-content">
+          <header>
+            <h2><span class="material-icons">group</span> Użytkownicy</h2>
+            <button class="users-close" type="button"><span class="material-icons">close</span></button>
+          </header>
+          <div class="users-empty">Ładowanie danych...</div>
+        </div>
+      `;
+      await fetchUsersList();
+      renderUsersPanel();
+    }
+
+    async function handleCreateUser(event) {
+      event.preventDefault();
+      if (!isAdmin()) {
+        usersMessage = { type: "error", text: "Brak uprawnień." };
+        renderUsersPanel();
+        return;
+      }
+      const form = event.target;
+      const email = form.email.value.trim();
+      const name = form.name.value.trim();
+      const password = form.password.value.trim();
+      const role = form.role.value;
+      if (!email || !password) {
+        usersMessage = { type: "error", text: "Email i hasło są wymagane." };
+        renderUsersPanel();
+        return;
+      }
+      try {
+        await safeFetch(`${API}/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email, name, password, role })
+        });
+        usersMessage = { type: "success", text: "Użytkownik został utworzony." };
+        form.reset();
+        await fetchUsersList();
+        renderUsersPanel();
+      } catch (error) {
+        usersMessage = { type: "error", text: error.message || "Nie udało się dodać użytkownika." };
+        renderUsersPanel();
+      }
+    }
+
+    async function handleDeleteUser(userID) {
+      if (!isAdmin()) {
+        alert("Brak uprawnień.");
+        return;
+      }
+      if (currentUser && currentUser.id === userID) {
+        alert("Nie możesz usunąć własnego konta.");
+        return;
+      }
+      if (!confirm('Na pewno usunąć tego użytkownika?')) {
+        return;
+      }
+      try {
+        await safeFetch(`${API}/users/${userID}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        usersMessage = { type: "success", text: "Użytkownik został usunięty." };
+        await fetchUsersList();
+        renderUsersPanel();
+      } catch (error) {
+        usersMessage = { type: "error", text: error.message || "Nie udało się usunąć użytkownika." };
+        renderUsersPanel();
+      }
+    }
+
+    function startEditUser(userID) {
+      if (!isAdmin()) {
+        alert("Brak uprawnień.");
+        return;
+      }
+      editingUserId = userID;
+      usersMessage = { type: "", text: "" };
+      renderUsersPanel();
+      // Scroll do formularza edycji
+      requestAnimationFrame(() => {
+        const editForm = document.getElementById('usersEditForm');
+        if (editForm) {
+          editForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      });
+    }
+
+    function cancelEditUser() {
+      editingUserId = null;
+      usersMessage = { type: "", text: "" };
+      renderUsersPanel();
+    }
+
+    async function handleEditUser(event) {
+      event.preventDefault();
+      if (!isAdmin()) {
+        usersMessage = { type: "error", text: "Brak uprawnień." };
+        renderUsersPanel();
+        return;
+      }
+      if (editingUserId === null) {
+        return;
+      }
+      const form = event.target;
+      const name = form.name.value.trim();
+      const password = form.password.value.trim();
+      const role = form.role.value;
+
+      const payload = { name, role };
+      if (password) {
+        payload.password = password;
+      }
+
+      try {
+        await safeFetch(`${API}/users/${editingUserId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload)
+        });
+        usersMessage = { type: "success", text: "Użytkownik został zaktualizowany." };
+        editingUserId = null;
+        await fetchUsersList();
+        renderUsersPanel();
+      } catch (error) {
+        usersMessage = { type: "error", text: error.message || "Nie udało się zaktualizować użytkownika." };
+        renderUsersPanel();
+      }
+    }
 
     function formatPercent(value, digits = 1) {
       if (value === null || value === undefined || Number.isNaN(Number(value))) {
@@ -1554,6 +2656,10 @@
     }
 
     function openDashboard() {
+      if (!currentUser) {
+        showLoginOverlay();
+        return;
+      }
       if (document.getElementById('dashboardOverlay')) {
         renderDashboardContent();
         return;
@@ -1830,11 +2936,15 @@
 
     // Projekty
     async function fetchProjects() {
-      const res = await fetch(`${API}/projects`);
-      
+      try {
+        const res = await safeFetch(`${API}/projects`);
       projects = await res.json();
       renderProjects();
       renderProjectDetails();
+        await fetchMetrics();
+      } catch (error) {
+        console.error("Failed to fetch projects:", error);
+      }
     }
     function renderProjects() {
       const list = document.getElementById('projectsList');
@@ -1864,12 +2974,15 @@
           <span class="count">${tasks.filter(t=>t.project_id===p.id).length}</span>
         </div>`;
         div.onclick = () => { selectedProject = p.id; renderProjects(); renderTasks(); renderProjectDetails(); };
+        if (canManage()) {
         div.oncontextmenu = (e) => {
           e.preventDefault();
           showProjectModal(p);
         };
-        // Dodaj tooltip z informacją o prawym kliku
         div.title = `Prawy klik: Edytuj projekt`;
+        } else {
+          div.title = '';
+        }
         list.appendChild(div);
       });
     }
@@ -1891,6 +3004,7 @@
       }
       const projectTasks = tasks.filter(t => t.project_id === project.id);
       const count = projectTasks.length;
+      const managePermissions = canManage();
 
       const tasksMarkup = projectTasks.length
         ? projectTasks.sort((a, b) => {
@@ -1906,6 +3020,12 @@
             const priorityChip = `<span class="chip"><span class="material-icons">flag</span>${task.priority || 0}</span>`;
             const tagsChip = (task.tags || []).length ? `<span class="chip"><span class="material-icons">label</span>${task.tags.join(', ')}</span>` : '';
             const badgeHtml = task.badge ? `<div>${renderBadge(task.badge)}</div>` : '';
+            const actions = managePermissions ? `
+                <div class="project-task-actions">
+                  <button onclick="toggleDone(${task.id})" title="${task.done ? 'Oznacz jako niewykonane' : 'Oznacz jako wykonane'}"><span class="material-icons">${task.done ? 'restart_alt' : 'check'}</span></button>
+                  <button onclick="showTaskModal(tasks.find(t=>t.id===${task.id}))" title="Edytuj zadanie"><span class="material-icons">edit</span></button>
+                </div>
+            ` : '';
             return `
               <div class="project-task-entry${task.done ? ' done' : ''}">
                 <div class="project-task-main">
@@ -1921,10 +3041,7 @@
                   </div>
                   ${badgeHtml}
                 </div>
-                <div class="project-task-actions">
-                  <button onclick="toggleDone(${task.id})" title="${task.done ? 'Oznacz jako niewykonane' : 'Oznacz jako wykonane'}"><span class="material-icons">${task.done ? 'restart_alt' : 'check'}</span></button>
-                  <button onclick="showTaskModal(tasks.find(t=>t.id===${task.id}))" title="Edytuj zadanie"><span class="material-icons">edit</span></button>
-                </div>
+                ${actions}
               </div>
             `;
           }).join('')
@@ -1932,9 +3049,17 @@
           <div class="project-task-empty">
             <span class="material-icons">checklist</span>
             <div>Brak zadań w tym projekcie</div>
-            <button class="overview-quick-button" onclick="showTaskModal(null, ${project.id})">Dodaj pierwsze zadanie</button>
+            ${managePermissions ? `<button class="overview-quick-button" onclick="showTaskModal(null, ${project.id})">Dodaj pierwsze zadanie</button>` : ''}
           </div>
         `;
+
+      const actionsArea = managePermissions ? `
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button title='Dodaj zadanie do projektu' onclick='showTaskModal(null, ${project.id})' style='background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;'><span class="material-icons">add_task</span></button>
+            <button title='Edytuj projekt' onclick='showProjectModal(projects.find(p=>p.id===${project.id}))' style='background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;'><span class="material-icons">edit</span></button>
+            <button title='Usuń projekt' onclick='deleteProject(${project.id})' style='background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;'><span class="material-icons">delete</span></button>
+          </div>
+      ` : '';
 
       details.innerHTML = `
         <div style="background:var(--card);border-radius:16px;padding:18px 22px;margin-bottom:18px;box-shadow:var(--shadow);border:1.5px solid var(--border);display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
@@ -1945,11 +3070,7 @@
             ${project.description ? `<div style="color:#666;font-size:0.9em;margin-top:4px;">${project.description}</div>` : ''}
             ${project.badge ? `<div style="margin-top:8px;">${renderBadge(project.badge)}</div>` : ''}
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button title='Dodaj zadanie do projektu' onclick='showTaskModal(null, ${project.id})' style='background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;'><span class="material-icons">add_task</span></button>
-            <button title='Edytuj projekt' onclick='showProjectModal(projects.find(p=>p.id===${project.id}))' style='background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;'><span class="material-icons">edit</span></button>
-            <button title='Usuń projekt' onclick='deleteProject(${project.id})' style='background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;'><span class="material-icons">delete</span></button>
-          </div>
+          ${actionsArea}
         </div>
         <div class="project-tasks-panel">
           <div class="project-tasks-header">
@@ -1961,6 +3082,10 @@
       `;
     }
     async function saveProject() {
+      if (!canManage()) {
+        alert("Brak uprawnień do zapisu projektu.");
+        return;
+      }
       const name = document.getElementById('projectName').value.trim();
       if (!name) return alert('Nazwa projektu jest wymagana!');
       try {
@@ -1995,6 +3120,7 @@
         tasks = await res.json();
         renderTasks();
         renderProjects();
+        await fetchMetrics();
       } catch (error) {
         console.error("Failed to fetch tasks:", error);
       }
@@ -2025,6 +3151,7 @@
         if (!b.deadline) return -1;
         return new Date(a.deadline) - new Date(b.deadline);
       });
+      const managePermissions = canManage();
       if (filtered.length === 0) {
         const emptyDiv = document.createElement('div');
         emptyDiv.style.cssText = 'grid-column:1/-1;text-align:center;padding:40px;color:#888;font-style:italic;background:var(--card);border-radius:var(--radius);border:1.5px solid var(--border);';
@@ -2038,12 +3165,24 @@
         card.className = 'task-card' + (t.done ? ' done' : '') + (compactView ? ' compact' : '');
         
         if (compactView) {
-          // Widok kompaktowy - lista
-          card.innerHTML = `
-            <div style="display:flex;align-items:center;gap:12px;width:100%;">
+          const compactActions = managePermissions ? `
               <button title="${t.done ? 'Oznacz jako niewykonane' : 'Oznacz jako wykonane'}" onclick="toggleDone(${t.id})" style="background:none;border:none;cursor:pointer;color:var(--primary);">
                 <span class="material-icons">${t.done ? 'check_box' : 'check_box_outline_blank'}</span>
               </button>
+          ` : '';
+          const trailingActions = managePermissions ? `
+              <div style="display:flex;gap:4px;">
+                <button title="Edytuj" onclick="showTaskModal(tasks.find(x=>x.id===${t.id}))" style="background:none;border:none;cursor:pointer;padding:4px;border-radius:4px;color:var(--primary);">
+                  <span class="material-icons">edit</span>
+                </button>
+                <button title="Usuń" onclick="deleteTask(${t.id})" style="background:none;border:none;cursor:pointer;padding:4px;border-radius:4px;color:var(--primary);">
+                  <span class="material-icons">delete</span>
+                </button>
+              </div>
+          ` : '';
+          card.innerHTML = `
+            <div style="display:flex;align-items:center;gap:12px;width:100%;">
+              ${compactActions}
               <div style="flex:1;min-width:0;">
                 <div style="font-weight:600;font-size:1.1em;margin-bottom:4px;">${t.title}</div>
                 ${t.description ? `<div style="font-size:0.9em;color:#666;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.description}</div>` : ''}
@@ -2053,18 +3192,18 @@
                   ${(t.tags||[]).length > 0 ? `<span style="color:var(--primary);">${(t.tags||[]).join(', ')}</span>` : ''}
                 </div>
               </div>
-              <div style="display:flex;gap:4px;">
-                <button title="Edytuj" onclick="showTaskModal(tasks.find(x=>x.id===${t.id}))" style="background:none;border:none;cursor:pointer;padding:4px;border-radius:4px;color:var(--primary);">
-                  <span class="material-icons">edit</span>
-                </button>
-                <button title="Usuń" onclick="deleteTask(${t.id})" style="background:none;border:none;cursor:pointer;padding:4px;border-radius:4px;color:var(--primary);">
-                  <span class="material-icons">delete</span>
-                </button>
-              </div>
+              ${trailingActions}
             </div>
           `;
         } else {
-          // Widok kart
+          const cardActions = managePermissions ? `
+            <div class="actions">
+              <button title="Edytuj" onclick="showTaskModal(tasks.find(x=>x.id===${t.id}))"><span class="material-icons">edit</span></button>
+              <button title="Usuń" onclick="deleteTask(${t.id})"><span class="material-icons">delete</span></button>
+              <button title="${t.done ? 'Oznacz jako niewykonane' : 'Oznacz jako wykonane'}" onclick="toggleDone(${t.id})"><span class="material-icons">${t.done ? 'check_box' : 'check_box_outline_blank'}</span></button>
+            </div>
+          ` : '';
+
           card.innerHTML = `
             <div class="row">
               <span class="title">${t.title}</span>
@@ -2076,11 +3215,7 @@
               ${t.priority ? `<span class="material-icons" style="font-size:1em;vertical-align:middle;">flag</span> Priorytet: ${t.priority}` : ''}
               <span>${t.done ? '<span class="material-icons" style="color:var(--primary)">check_circle</span> Wykonane' : ''}</span>
             </div>
-            <div class="actions">
-              <button title="Edytuj" onclick="showTaskModal(tasks.find(x=>x.id===${t.id}))"><span class="material-icons">edit</span></button>
-              <button title="Usuń" onclick="deleteTask(${t.id})"><span class="material-icons">delete</span></button>
-              <button title="${t.done ? 'Oznacz jako niewykonane' : 'Oznacz jako wykonane'}" onclick="toggleDone(${t.id})"><span class="material-icons">${t.done ? 'check_box' : 'check_box_outline_blank'}</span></button>
-            </div>
+            ${cardActions}
           `;
         }
         
@@ -2088,6 +3223,10 @@
       });
     }
     async function saveTask() {
+      if (!canManage()) {
+        alert("Brak uprawnień do zapisu zadania.");
+        return;
+      }
       const title = document.getElementById('taskTitle').value.trim();
       const description = document.getElementById('taskDescription').value.trim();
       const projectSelectValue = document.getElementById('taskProject').value;
@@ -2139,6 +3278,10 @@
       }
     }
     async function deleteTask(id) {
+      if (!canManage()) {
+        alert("Brak uprawnień do usuwania zadań.");
+        return;
+      }
       if (!confirm('Na pewno usunąć zadanie?')) return;
       try {
         await safeFetch(`${API}/tasks/${id}`, { method: 'DELETE' });
@@ -2148,6 +3291,10 @@
       }
     }
     async function deleteProject(id) {
+      if (!canManage()) {
+        alert("Brak uprawnień do usuwania projektów.");
+        return;
+      }
       if (!confirm('Na pewno usunąć projekt?')) return;
       try {
         await safeFetch(`${API}/projects/${id}`, { method: 'DELETE' });
@@ -2167,6 +3314,10 @@
     }
     // Modale
     function showProjectModal(project) {
+      if (!canManage()) {
+        alert("Brak uprawnień do zarządzania projektami.");
+        return;
+      }
       editingProject = project;
       const modal = document.createElement('div');
       modal.className = 'modal-bg';
@@ -2185,6 +3336,10 @@
       document.getElementById('modalRoot').appendChild(modal);
     }
     function showTaskModal(task, projectId = null) {
+      if (!canManage()) {
+        alert("Brak uprawnień do zarządzania zadaniami.");
+        return;
+      }
       editingTask = task;
       // Jeśli podano projectId, użyj go jako domyślnego projektu
       if (projectId && !task) {
@@ -2238,6 +3393,10 @@
     }
     // Eksport
     function exportData(format) {
+      if (!currentUser) {
+        showLoginOverlay();
+        return;
+      }
       window.open(`${API}/export?format=${format}`);
     }
     // Funkcja do rozwijania opisu
@@ -2272,6 +3431,10 @@
     
     // Dodaj funkcję toggleDone jeśli nie istnieje
     function toggleDone(id) {
+      if (!canManage()) {
+        alert("Brak uprawnień do zmiany statusu zadania.");
+        return;
+      }
       const task = tasks.find(t => t.id === id);
       if (!task) return;
       task.done = !task.done;
@@ -2308,6 +3471,10 @@
     }
 
     async function openOverview() {
+      if (!currentUser) {
+        showLoginOverlay();
+        return;
+      }
       if (!projects.length) {
         await fetchProjects();
       }
@@ -2470,10 +3637,28 @@
     
     // Inicjalizacja
     let ws = null;
+    let wsReconnectTimer = null;
     
-    function connectWebSocket() {
+    function connectWebSocket(force = false) {
+      if (!currentUser) {
+        return;
+      }
+      if (ws && ws.readyState === WebSocket.OPEN && !force) {
+        return;
+      }
+      if (ws) {
+        ws.onclose = null;
+        ws.close();
+      }
+      const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
       try {
-        ws = new WebSocket("ws://localhost:8080/ws");
+        ws = new WebSocket(`${protocol}://${window.location.host}/ws`);
+        ws.onopen = function() {
+          if (wsReconnectTimer) {
+            clearTimeout(wsReconnectTimer);
+            wsReconnectTimer = null;
+          }
+        };
         ws.onmessage = function(event) {
           try {
             const payload = JSON.parse(event.data);
@@ -2482,36 +3667,78 @@
               fetchTasks();
             }
           } catch (err) {
-            if (event.data === "update") {
-              fetchProjects();
-              fetchTasks();
+          if (event.data === "update") {
+            fetchProjects();
+            fetchTasks();
             }
           }
         };
         ws.onclose = function() {
-          console.log("WebSocket connection closed, attempting to reconnect...");
-          setTimeout(connectWebSocket, 3000);
+          if (currentUser) {
+            console.log("WebSocket closed, reconnecting...");
+            wsReconnectTimer = setTimeout(() => connectWebSocket(true), 3000);
+          }
         };
         ws.onerror = function(error) {
           console.error("WebSocket error:", error);
         };
       } catch (error) {
         console.error("Failed to connect WebSocket:", error);
-        setTimeout(connectWebSocket, 3000);
+        if (currentUser) {
+          wsReconnectTimer = setTimeout(() => connectWebSocket(true), 3000);
+        }
+      }
+    }
+    
+    function disconnectWebSocket() {
+      if (wsReconnectTimer) {
+        clearTimeout(wsReconnectTimer);
+        wsReconnectTimer = null;
+      }
+      if (ws) {
+        ws.onclose = null;
+        try {
+          ws.close();
+        } catch (error) {
+          console.error("Error closing WebSocket:", error);
+        }
+        ws = null;
       }
     }
     
     // Dodaj obsługę błędów dla fetch
     async function safeFetch(url, options = {}) {
       try {
-        const response = await fetch(url, options);
+        const finalOptions = { credentials: 'include', ...options };
+        const response = await fetch(url, finalOptions);
+        if (response.status === 401) {
+          currentUser = null;
+          updateUserInfoUI();
+          updateRoleVisibility();
+          disconnectWebSocket();
+          showLoginOverlay("Sesja wygasła. Zaloguj się ponownie.");
+          throw new Error("Unauthorized");
+        }
+        if (response.status === 403) {
+          alert("Brak uprawnień do wykonania tej operacji.");
+          throw new Error("Forbidden");
+        }
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          let details = "";
+          try {
+            const data = await response.json();
+            details = data.error || data.message || response.statusText;
+          } catch {
+            details = response.statusText;
+          }
+          throw new Error(`HTTP ${response.status}: ${details}`);
         }
         return response;
       } catch (error) {
         console.error("Fetch error:", error);
+        if (error.message !== "Unauthorized" && error.message !== "Forbidden") {
         alert(`Błąd połączenia: ${error.message}`);
+        }
         throw error;
       }
     }
@@ -2552,13 +3779,14 @@
       }
     });
     
-    connectWebSocket();
     renderMetricsSummary();
-    Promise.all([fetchProjects(), fetchTasks()]);
+    initializeApp();
 
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
         closeOverview();
+        closeDashboard();
+        closeUsersPanel();
       }
     });
     
