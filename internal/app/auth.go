@@ -344,3 +344,12 @@ func deleteSessionsForUser(userID int) {
 	}
 	sessionMutex.Unlock()
 }
+
+// VerifyAdminRegistrationToken sprawdza, czy podany token jest poprawny dla rejestracji admina.
+func VerifyAdminRegistrationToken(token string) bool {
+	cfg := GetCurrentConfig()
+	if cfg.AdminRegistrationToken == "" {
+		return false
+	}
+	return token == cfg.AdminRegistrationToken
+}

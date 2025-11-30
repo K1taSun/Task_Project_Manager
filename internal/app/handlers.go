@@ -25,6 +25,7 @@ func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/auth/login", withCORS(logMiddleware(loginHandler)))
 	mux.HandleFunc("/auth/logout", withCORS(logMiddleware(requireAuth(logoutHandler))))
 	mux.HandleFunc("/auth/me", withCORS(logMiddleware(requireAuth(currentUserHandler))))
+	mux.HandleFunc("/auth/register-admin", withCORS(logMiddleware(registerAdminHandler)))
 
 	mux.HandleFunc("/users", withCORS(logMiddleware(requireRole("admin", usersHandler))))
 	mux.HandleFunc("/users/", withCORS(logMiddleware(requireRole("admin", userHandler))))
@@ -682,6 +683,53 @@ func currentUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(sanitizeUser(*user))
+}
+
+func registerAdminHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSONError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	var payload struct {
+		RegistrationToken string `json:"registration_token"`
+		Email             string `json:"email"`
+		Name              string `json:"name"`
+		Password          string `json:"password"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		writeJSONError(w, http.StatusBadRequest, "Invalid JSON")
+		return
+	}
+
+	// Weryfikacja tokenu rejestracji
+	if !VerifyAdminRegistrationToken(payload.RegistrationToken) {
+		writeJSONError(w, http.StatusForbidden, "Niepoprawny token rejestracji")
+		return
+	}
+
+	// Walidacja danych
+	if payload.Email == "" || payload.Password == "" {
+		writeJSONError(w, http.StatusBadRequest, "Email i hasło są wymagane")
+		return
+	}
+
+	if payload.Name == "" {
+		writeJSONError(w, http.StatusBadRequest, "Imię jest wymagane")
+		return
+	}
+
+	// Utworzenie użytkownika z rolą admin
+	user, err := CreateUser(payload.Email, payload.Name, payload.Password, "admin")
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(sanitizeUser(user))
 }
 
 func usersHandler(w http.ResponseWriter, r *http.Request) {

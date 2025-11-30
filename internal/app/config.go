@@ -26,13 +26,14 @@ const (
 
 // Config przechowuje ustawienia aplikacji.
 type Config struct {
-	Port          string
-	Host          string
-	ProjectsFile  string
-	TasksFile     string
-	UsersFile     string
-	StaticDir     string
-	SessionSecret string
+	Port                  string
+	Host                  string
+	ProjectsFile          string
+	TasksFile             string
+	UsersFile             string
+	StaticDir             string
+	SessionSecret         string
+	AdminRegistrationToken string
 }
 
 var (
@@ -99,6 +100,10 @@ func LoadConfigFromEnv() *Config {
 		cfg.SessionSecret = secret
 	}
 
+	if token := os.Getenv("ADMIN_REGISTRATION_TOKEN"); token != "" {
+		cfg.AdminRegistrationToken = token
+	}
+
 	return cfg
 }
 
@@ -111,6 +116,11 @@ func PrintConfig(cfg *Config) {
 	log.Printf("  Plik zadań: %s", cfg.TasksFile)
 	log.Printf("  Plik użytkowników: %s", cfg.UsersFile)
 	log.Printf("  Katalog statyczny: %s", cfg.StaticDir)
+	if cfg.AdminRegistrationToken != "" {
+		log.Printf("  Token rejestracji admina: ustawiony")
+	} else {
+		log.Printf("  Token rejestracji admina: nie ustawiony (rejestracja admina wyłączona)")
+	}
 }
 
 // ValidateConfig sprawdza poprawność konfiguracji.

@@ -97,8 +97,14 @@
    Domyślnie backend nasłuchuje na `localhost:8080`. Zmienne środowiskowe (`HOST`, `PORT`, `PROJECTS_FILE`, `TASKS_FILE`) pozwalają nadpisać konfigurację.
 4. **Frontend:** otwórz w przeglądarce `http://localhost:8080`.
 5. **Logowanie:** przy pierwszym uruchomieniu tworzony jest użytkownik `admin@example.com` z hasłem `admin123`. Zmień je od razu po zalogowaniu.
-6. **Dashboard metryk:** kliknij ikonę wykresu w górnym pasku, aby zobaczyć podsumowania i wykresy (Chart.js jest ładowany z CDN).
-7. **Zarządzanie użytkownikami:** jako Administrator skorzystaj z przycisku „Użytkownicy” w górnym pasku, aby dodać nowe konto lub usunąć istniejące.
+6. **Rejestracja admina przez token:** aby włączyć możliwość rejestracji nowych adminów przez specjalny link, ustaw zmienną środowiskową `ADMIN_REGISTRATION_TOKEN`:
+   ```bash
+   export ADMIN_REGISTRATION_TOKEN="twoj-sekretny-token-123"
+   go run ./cmd/task-manager
+   ```
+   Następnie wyślij żądanie POST do `/auth/register-admin` z tokenem, emailem, imieniem i hasłem.
+7. **Dashboard metryk:** kliknij ikonę wykresu w górnym pasku, aby zobaczyć podsumowania i wykresy (Chart.js jest ładowany z CDN).
+8. **Zarządzanie użytkownikami:** jako Administrator skorzystaj z przycisku „Użytkownicy” w górnym pasku, aby dodać nowe konto lub usunąć istniejące.
 
 > Pliki `data_projects.json`, `data_tasks.json` oraz `data_users.json` są wykluczone z repozytorium (zapisują bieżący stan). Jeśli zaczynasz od pustej instalacji, aplikacja sama utworzy te pliki przy pierwszym uruchomieniu.
 
@@ -111,6 +117,7 @@
   - `POST /auth/login` – logowanie (JSON: `email`, `password`)
   - `POST /auth/logout` – wylogowanie
   - `GET /auth/me` – informacja o aktualnym użytkowniku
+  - `POST /auth/register-admin` – rejestracja nowego admina (wymaga `ADMIN_REGISTRATION_TOKEN`)
   - `GET /users` – lista użytkowników (tylko `admin`)
   - `POST /users` – tworzenie użytkownika (tylko `admin`)
   - `PUT /users/{id}` / `DELETE /users/{id}` – zmiana/usuń (tylko `admin`)
@@ -139,14 +146,15 @@ Dane są odświeżane automatycznie przy zmianach (REST + WebSocket). Tryb ciemn
 
 ## Konfiguracja
 
-| Zmienna          | Domyślna wartość      | Opis                                                |
-|------------------|------------------------|-----------------------------------------------------|
-| `HOST`           | `localhost`            | Adres interfejsu serwera HTTP                      |
-| `PORT`           | `8080`                 | Port nasłuchu HTTP                                 |
-| `PROJECTS_FILE`  | `data_projects.json`   | Ścieżka do pliku z projektami                      |
-| `TASKS_FILE`     | `data_tasks.json`      | Ścieżka do pliku z zadaniami                       |
-| `USERS_FILE`     | `data_users.json`      | Ścieżka do pliku z użytkownikami                   |
-| `SESSION_SECRET` | losowo generowany      | Sekret wykorzystywany do zabezpieczenia sesji      |
+| Zmienna                   | Domyślna wartość      | Opis                                                |
+|---------------------------|------------------------|-----------------------------------------------------|
+| `HOST`                    | `localhost`            | Adres interfejsu serwera HTTP                      |
+| `PORT`                    | `8080`                 | Port nasłuchu HTTP                                 |
+| `PROJECTS_FILE`           | `data_projects.json`   | Ścieżka do pliku z projektami                      |
+| `TASKS_FILE`              | `data_tasks.json`      | Ścieżka do pliku z zadaniami                       |
+| `USERS_FILE`              | `data_users.json`      | Ścieżka do pliku z użytkownikami                   |
+| `SESSION_SECRET`          | losowo generowany      | Sekret wykorzystywany do zabezpieczenia sesji      |
+| `ADMIN_REGISTRATION_TOKEN`| brak (wyłączone)       | Token wymagany do rejestracji nowego admina        |
 
 Pliki z danymi tworzą się automatycznie. Jeśli chcesz zacząć od pustej bazy, ustaw w nich `[]` lub wskaż inne lokalizacje.
 
